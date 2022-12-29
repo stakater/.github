@@ -169,7 +169,6 @@ jobs:
     # Build and push "latest" tag
     # latest tag requires submitted preflight results
     - name: Build and push
-      id: build_and_push
       uses: docker/build-push-action@v3
       with:
         context: .
