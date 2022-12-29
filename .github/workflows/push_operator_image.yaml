@@ -62,6 +62,10 @@ on:
         description: "Secret to create branch in stakater/certified-operators repository"
         required: true
 
+      STAKATER_DELIVERY_SLACK_WEBHOOK:
+        description: "Secret to send success/failure message to slack"
+        required: true
+
 jobs:
   publish-image:
     name: Publish Container Image to Catalog
@@ -111,8 +115,8 @@ jobs:
         source: "github"
         preflight: ${{ inputs.PREFLIGHT_VERSION }}
 
-    - name: 'Get Previous tag'
-      id: previous_tag
+    - name: Get latest tag
+      id: latest_tag
       uses: "WyriHaximus/github-action-get-previous-tag@v1"
       with:
         fallback: 1.0.0
@@ -151,19 +155,19 @@ jobs:
         pull: true
         push: true
         build-args: |
-          VERSION=${{ steps.previous_tag.outputs.tag }}
+          VERSION=${{ steps.latest_tag.outputs.tag }}
         cache-to: type=inline
         tags: |
-          ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }}
+          ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }}
 
     - name: Run Preflight test
       run: |
-        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
 
     - name: Submit Preflight test
       run: |
         rm -r ./artifacts
-        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
         rm -r ./artifacts
 
     # Build and push "latest" tag
@@ -176,13 +180,14 @@ jobs:
         pull: true
         push: true
         build-args: |
-          VERSION=${{ steps.previous_tag.outputs.tag }}
+          VERSION=${{ steps.latest_tag.outputs.tag }}
         cache-to: type=inline
         tags: |
           ${{ env.IMAGE_REPOSITORY }}:latest
     
     outputs:
       operator_hub_image_digest: ${{ steps.build_and_push.outputs.digest }}
+      latest_tag: ${{ steps.latest_tag.outputs.tag }}
 
   publish-bundle:
     name: Publish Bundle to Certified Operators
@@ -250,13 +255,13 @@ jobs:
         git fetch upstream
         git merge upstream/main
         git push --set-upstream origin main
-        git checkout -b mto-${{ steps.previous_tag.outputs.tag }}
-        mkdir operators/tenant-operator/${{ steps.previous_tag.outputs.tag }}
-        cp -R ../bundle/manifests operators/tenant-operator/${{ steps.previous_tag.outputs.tag }}/manifests
-        cp -R ../bundle/metadata operators/tenant-operator/${{ steps.previous_tag.outputs.tag }}/metadata
+        git checkout -b mto-${{ needs.publish-image.outputs.latest_tag}}
+        mkdir operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}
+        cp -R ../bundle/manifests operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/manifests
+        cp -R ../bundle/metadata operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/metadata
         git add .
-        git commit -am "Updated multi-tenant-operator to ${{ steps.previous_tag.outputs.tag }}"
-        git push --set-upstream origin mto-${{ steps.previous_tag.outputs.tag }}
+        git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
+        git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
 
   notify-slack:
     name: Slack notification
@@ -285,7 +290,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Multi Tenant Operator container image successfully published to OperatorHub registry and a branch with operator bundle created in *<https://github.com/stakater/certified-operators/tree/mto-${{ steps.previous_tag.outputs.tag }}|stakater/certified-operators>*"
+                  "text": "Multi Tenant Operator container image successfully published to OperatorHub registry and a branch with operator bundle created in *<https://github.com/stakater/certified-operators/tree/mto-${{ needs.publish-image.outputs.latest_tag}}|stakater/certified-operators>*"
                 }
               },
               {
