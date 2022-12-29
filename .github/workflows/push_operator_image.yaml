@@ -181,7 +181,8 @@ jobs:
       OPERATOR_HUB_IMAGE_DIGEST: ${{ steps.publish-image.outputs.digest }}
 
   publish-bundle:
-    name: Publish Bundle to Certifies Operators
+    name: Publish Bundle to Certified Operators
+    needs: ["publish-image"]
     runs-on: ubuntu-latest
 
     steps:
