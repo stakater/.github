@@ -244,7 +244,7 @@ jobs:
     steps:
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
-      if: (needs.publish-image.result == 'success' && needs.publish-bundle.result == 'success')
+      if: always() && (needs.publish-image.result == 'success' && needs.publish-bundle.result == 'success')
       with:
         status: custom
         fields: repo,author,action,eventName,ref,workflow
@@ -290,7 +290,7 @@ jobs:
 
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
-      if: ! (needs.publish-image.result == 'success') || ! (needs.publish-bundle.result == 'success')
+      if: always() && (needs.publish-image.result != 'success') || (needs.publish-bundle.result != 'success')
       with:
         status: custom
         fields: repo,author,action,eventName,ref,workflow
