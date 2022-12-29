@@ -180,7 +180,7 @@ jobs:
     outputs:
       OPERATOR_HUB_IMAGE_DIGEST: ${{ steps.publish-image.outputs.digest }}
 
-publish-bundle:
+  publish-bundle:
     name: Publish Bundle to Certifies Operators
     runs-on: ubuntu-latest
 
