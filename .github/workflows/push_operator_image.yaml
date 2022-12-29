@@ -207,6 +207,13 @@ jobs:
         echo ${{ secrets.REGISTRY_REDHAT_IO_PULL_SECRET }} | base64 -d > ~/.docker/config.json
         docker login registry.redhat.io
 
+    - name: Login to Quay Registry
+      uses: docker/login-action@v2
+      with:
+        registry: quay.io
+        username: ${{ secrets.OPERATOR_HUB_USERNAME }}
+        password: ${{ secrets.OPERATOR_HUB_PASSWORD }}
+
     - name: Install CLI tools from OpenShift Mirror
       uses: redhat-actions/openshift-tools-installer@v1
       with:
