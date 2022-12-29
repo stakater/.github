@@ -1,0 +1,140 @@
+name: OperatorHub Certification
+
+on:
+  workflow_call:
+    inputs:
+      GOLANG_VERSION:
+        description: Go version to use
+        default: "~1.18"
+        required: false
+        type: string
+
+      GOLANG_CI_LINT_VERSION:
+        description: golang-ci-lint version to use
+        default: "~1.50.1"
+        required: false
+        type: string
+
+      PREFLIGHT_VERSION:
+        description: preflight version to use
+        default: "~1.4.3"
+        required: false
+        type: string
+
+      OPERATOR_SDK_VERSION:
+        description: OperatorSdk version to use
+        default: "~1.26.0"
+        required: false
+        type: string
+
+      CERTIFICATION_PROJECT_ID:
+        description: Certification project ID
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: OperatorHub Image Publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up GO
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.GOLANG_VERSION }}
+
+    - name: Lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
+        only-new-issues: false
+        args: --timeout 10m
+
+    - name: Test
+      run: make test
+
+    # Install preflight
+    # https://github.com/redhat-actions/openshift-tools-installer#supported-tools
+
+    - name: Install CLI tools from OpenShift Mirror
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        source: "github"
+        preflight: ${{ inputs.PREFLIGHT_VERSION }}
+        operator-sdk: ${{ inputs.OPERATOR_SDK_VERSION }}
+
+    - name: 'Get Previous tag'
+      id: previous_tag
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: 1.0.0
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # For pulling ubi8/go-toolset
+    - name: Login to RedHat Registry
+      run: |
+        echo ${{ secrets.REGISTRY_REDHAT_IO_PULL_SECRET }} | base64 -d > ~/.docker/config.json
+        docker login registry.redhat.io
+    
+    # For pushing operator image
+    - name: Login to Quay Registry
+      uses: docker/login-action@v2
+      with:
+        registry: quay.io
+        username: ${{ secrets.OPERATOR_HUB_USERNAME }}
+        password: ${{ secrets.OPERATOR_HUB_PASSWORD }}
+
+    - name: Generate image repository path
+      run: |
+        echo IMAGE_REPOSITORY=$(echo quay.io/${{ secrets.OPERATOR_HUB_REPOSITORY }}) >> $GITHUB_ENV
+
+    # Build and push tag
+    - name: Build and push
+      id: build_and_push
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ${{ env.DOCKER_FILE_PATH  }}
+        pull: true
+        push: true
+        build-args: |
+          VERSION=${{ steps.previous_tag.outputs.tag }}
+        cache-to: type=inline
+        tags: |
+          ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }}
+
+    - name: Run Preflight test
+      run: |
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
+
+    - name: Submit Preflight test
+      run: |
+        rm -r ./artifacts
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.previous_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
+        rm -r ./artifacts
+
+    # Build and push "latest" tag
+    # latest tag requires submitted preflight results
+    - name: Build and push
+      id: build_and_push
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ${{ env.DOCKER_FILE_PATH  }}
+        pull: true
+        push: true
+        build-args: |
+          VERSION=${{ steps.previous_tag.outputs.tag }}
+        cache-to: type=inline
+        tags: |
+          ${{ env.IMAGE_REPOSITORY }}:latest
