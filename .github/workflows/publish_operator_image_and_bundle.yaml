@@ -268,7 +268,7 @@ jobs:
     steps:
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
-      if: always() && (needs.publish-image.result == 'success' && (needs.publish-bundle.result == 'success' || needs.publish-bundle.result == 'skipped'))
+      if: always() && (needs.publish-image.result == 'success' && needs.publish-bundle.result == 'success')
       with:
         status: custom
         fields: repo,author,action,eventName,ref,workflow
@@ -314,7 +314,22 @@ jobs:
 
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
-      if: always() && (needs.publish-image.result != 'success') || (needs.publish-bundle.result != 'success')
+      if: always() && (needs.publish-image.result == 'success') && (needs.publish-bundle.result == 'skipped' )
+      with:
+        status: custom
+        fields: repo,author,action,eventName,ref,workflow
+        custom_payload: |
+          {
+            attachments: [{
+              text: `Operator image successfully published`,
+            }]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
+
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      if: always() && (needs.publish-image.result != 'success') || (needs.publish-bundle.result != 'success' && needs.publish-bundle.result != 'skipped')
       with:
         status: custom
         fields: repo,author,action,eventName,ref,workflow
