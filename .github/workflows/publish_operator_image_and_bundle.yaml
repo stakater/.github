@@ -102,16 +102,6 @@ jobs:
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
-    - name: Lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
-        only-new-issues: false
-        args: --timeout 10m
-
-    - name: Test
-      run: make test
-
     # Install preflight
     # https://github.com/redhat-actions/openshift-tools-installer#supported-tools
 
