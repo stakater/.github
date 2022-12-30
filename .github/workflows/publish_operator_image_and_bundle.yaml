@@ -166,6 +166,10 @@ jobs:
         preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
         rm -r ./artifacts
 
+    # Wait is required for preflight result submission
+    - name: Wait for image publish
+      run: sleep 60
+
     # Build and push "latest" tag
     # latest tag requires submitted preflight results
     - name: Build and push
