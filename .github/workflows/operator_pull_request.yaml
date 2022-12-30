@@ -96,7 +96,7 @@ jobs:
     - name: Lint
       uses: golangci/golangci-lint-action@v2.5.2
       with:
-        version: {{ inputs.GOLANG_CI_LINT_VERSION }}
+        version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
         only-new-issues: false
         args: --timeout 10m
 
@@ -108,12 +108,12 @@ jobs:
     - name: Set up Helm
       uses: azure/setup-helm@v3
       with:
-        version: {{ inputs.HELM_VERSION }}
+        version: ${{ inputs.HELM_VERSION }}
 
     # Test Helm Templating
     - name: Test Helm Template
       run: |
-        helm template {{ inputs.HELM_CHART_TEMPLATE_NAME }} {{ inputs.HELM_CHARTS_FILE_PATH }} -n {{ inputs.HELM_CHART_NAMESPACE_NAME }}
+        helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_FILE_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
 
     - name: Generate Tag
       id: generate_tag
