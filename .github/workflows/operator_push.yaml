@@ -162,7 +162,7 @@ jobs:
 
   push-operator-to-nexus:
     name: Push operator to Nexus
-    needs: ["operator-push-setup"]
+    needs: ["push-operator-setup"]
     runs-on: ubuntu-latest
 
     steps:
@@ -199,7 +199,7 @@ jobs:
         push: true
         cache-to: type=inline
         tags: |
-          ${{ needs.operator-push-setup.outputs.nexus_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}
+          ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -207,7 +207,7 @@ jobs:
     # Update chart tag to the latest semver tag
     - name: Update Chart Version
       env:
-        VERSION: ${{ needs.operator-push-setup.outputs.new_tag_without_v }}
+        VERSION: ${{ needs.push-operator-setup.outputs.new_tag_without_v }}
       run: make bump-chart
 
     - name: Update Chart CRDs
@@ -249,7 +249,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.operator-push-setup.outputs.nexus_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
@@ -265,7 +265,7 @@ jobs:
   push-operator-to-dockerhub:
     name: Push operator to DockerHub
     if: ${{ inputs.PUBLISH_TO_DOCKERHUB }}
-    needs: ["operator-push-setup", "push-operator-to-nexus"]
+    needs: ["push-operator-setup", "push-operator-to-nexus"]
     runs-on: ubuntu-latest
 
     steps:
@@ -301,7 +301,7 @@ jobs:
         push: true
         cache-to: type=inline
         tags: |
-          ${{ needs.operator-push-setup.outputs.dockerhub_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}
+          ${{ needs.push-operator-setup.outputs.dockerhub_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -331,7 +331,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.operator-push-setup.outputs.dockerhub_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.dockerhub_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
