@@ -144,19 +144,7 @@ jobs:
         RELEASE_BRANCHES: main
         DRY_RUN: true
 
-    - name: Generate Nexus image repository path
-      id: generate_nexus_image_repository_path
-      run: |
-        echo NEXUS_IMAGE_REPOSITORY=$(echo ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-
-    - name: Generate DockerHub image repository path
-      id: generate_dockerhub_image_repository_path
-      run: |
-        echo DOCKERHUB_IMAGE_REPOSITORY=$(echo stakaterdockerhubpullroot/tenant-operator | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-
     outputs:
-      nexus_image_repository: ${{ env.NEXUS_IMAGE_REPOSITORY }}
-      dockerhub_image_repository: ${{ env.DOCKERHUB_IMAGE_REPOSITORY }}
       new_tag: ${{ steps.generate_tag.outputs.new_tag }}
       new_tag_without_v: ${{ steps.generate_tag_without_v.outputs.new_tag }}
 
@@ -176,6 +164,11 @@ jobs:
       uses: azure/setup-helm@v3
       with:
         version: ${{ inputs.HELM_VERSION }}
+
+    - name: Generate Nexus image repository path
+      id: generate_nexus_image_repository_path
+      run: |
+        echo NEXUS_IMAGE_REPOSITORY=$(echo ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
@@ -199,7 +192,7 @@ jobs:
         push: true
         cache-to: type=inline
         tags: |
-          ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}
+          ${{ env.NEXUS_IMAGE_REPOSITORY }}:${{ needs.push-operator-setup.outputs.new_tag }}
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
@@ -280,6 +273,11 @@ jobs:
       with:
         version: ${{ inputs.HELM_VERSION }}
 
+    - name: Generate DockerHub image repository path
+      id: generate_dockerhub_image_repository_path
+      run: |
+        echo DOCKERHUB_IMAGE_REPOSITORY=$(echo stakaterdockerhubpullroot/tenant-operator | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
 
@@ -301,7 +299,7 @@ jobs:
         push: true
         cache-to: type=inline
         tags: |
-          ${{ needs.push-operator-setup.outputs.dockerhub_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}
+          ${{ env.DOCKERHUB_IMAGE_REPOSITORY }}:${{ needs.push-operator-setup.outputs.new_tag }}
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
