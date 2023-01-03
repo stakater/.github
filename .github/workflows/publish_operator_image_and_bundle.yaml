@@ -64,7 +64,7 @@ on:
         description: "Pyxis API token to run Preflight"
         required: true
 
-      GITHUB_TOKEN:
+      ADMIN_TOKEN:
         description: "Secret to create branch in stakater/certified-operators repository"
         required: true
 
@@ -203,8 +203,8 @@ jobs:
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.GITHUB_TOKEN }}" == "" ]; then
-          echo "Required Secrets 'GITHUB_TOKEN' is not set!"
+        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
+          echo "Required Secrets 'ADMIN_TOKEN' is not set!"
           exit 1
         fi
 
@@ -234,7 +234,7 @@ jobs:
       with:
         owner: 'stakater'
         repository: 'certified-operators'
-        access-token: ${{ secrets.GITHUB_TOKEN }}
+        access-token: ${{ secrets.ADMIN_TOKEN }}
 
     - name: Push branch
       run: |
