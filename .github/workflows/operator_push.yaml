@@ -133,7 +133,7 @@ jobs:
 
     - name: Generate Tag
       id: generate_tag
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
@@ -144,7 +144,7 @@ jobs:
     # Generate tag without "v"
     - name: Generate Tag without 'v'
       id: generate_tag_without_v
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: false
@@ -222,7 +222,7 @@ jobs:
         rm -rf ./packaged-chart
 
     - name: Push Latest Tag
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
