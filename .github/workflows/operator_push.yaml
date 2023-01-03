@@ -1,0 +1,360 @@
+name: Operator Push
+
+on:
+  workflow_call:
+    inputs:
+      GOLANG_VERSION:
+        description: Go version to use
+        default: "~1.18"
+        required: false
+        type: string
+
+      GOLANG_CI_LINT_VERSION:
+        description: golang-ci-lint version to use
+        default: "v1.50.1"
+        required: false
+        type: string
+      
+      DOCKERFILE_PATH:
+        description: Dockerfile path
+        required: true
+        type: string
+
+      HELM_CHARTS_FILE_PATH:
+        description: Helm charts path
+        required: true
+        type: string
+
+      HELM_CHART_TEMPLATE_NAME:
+        description: Helm template chart name
+        required: true
+        type: string
+
+      HELM_CHART_NAMESPACE_NAME:
+        description: Helm chart namespace name for templates
+        required: true
+        type: string
+
+      HELM_VERSION:
+        description: Helm version to use
+        default: "v3.8.2"
+        required: false
+        type: string
+
+      STAKATER_HELM_REGISTRY_URL:
+        description: Stakater helm registry
+        required: false
+        type: string
+
+      PUBLISH_TO_DOCKERHUB:
+        description: "Publish to DockerHub will publish container image to DockerHub registry and helm chart to stakater/stakater-charts"
+        default: false
+        required: false
+        type: boolean
+
+    secrets:
+      STAKATER_GITHUB_TOKEN:
+        description: "Secret to pull latest tag"
+        required: true
+
+      STAKATER_DELIVERY_SLACK_WEBHOOK:
+        description: "Secret to send success/failure message to slack"
+        required: true
+
+      STAKATER_NEXUS_REGISTRY:
+        description: "Nexus docker registry to publish image"
+        required: true
+
+      STAKATER_NEXUS_USERNAME:
+        description: "Nexus docker registry username"
+        required: true
+
+      STAKATER_NEXUS_PASSWORD:
+        description: "Nexus docker registry password"
+        required: true
+
+      STAKATER_NEXUS_HELM_REGISTRY:
+        description: "Nexus helm registry to publish image"
+        required: true
+
+      STAKATER_NEXUS_HELM_USERNAME:
+        description: "Nexus helm registry username"
+        required: true
+
+      STAKATER_NEXUS_HELM_PASSWORD:
+        description: "Nexus helm registry password"
+        required: true
+      
+      STAKATER_GITHUB_HELM_REGISTRY:
+        description: "Stakater github helm registry password"
+        required: true
+
+jobs:
+  push-operator-setup:
+    name: Operator Push Setup
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Check if nexus docker secrets are set
+      run: |
+        if [ "${{ secrets.STAKATER_NEXUS_REGISTRY }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_USERNAME }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_NEXUS_REGISTRY' or 'STAKATER_NEXUS_USERNAME' or 'STAKATER_NEXUS_PASSWORD' are not set!"
+          exit 1
+        fi
+
+    - name: Check if nexus helm secrets are set
+      run: |
+        if [ "${{ secrets.STAKATER_NEXUS_HELM_REGISTRY }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_HELM_USERNAME }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_HELM_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_NEXUS_HELM_REGISTRY' or 'STAKATER_NEXUS_HELM_USERNAME' or 'STAKATER_NEXUS_HELM_PASSWORD' are not set!"
+          exit 1
+        fi
+
+    - name: Check if registry secrets are set
+      run: |
+        if [ "${{ secrets.STAKATER_GITHUB_TOKEN }}" == "" ] || [ "${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_GITHUB_TOKEN' or 'STAKATER_DELIVERY_SLACK_WEBHOOK' are not set!"
+          exit 1
+        fi
+
+    - name: Set up Go
+      id: go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.GOLANG_VERSION }}
+
+    - name: Lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
+        only-new-issues: false
+        args: --timeout 10m
+
+    # Run Tests
+    - name: Test
+      run: make test
+
+    - name: Generate Tag
+      id: generate_tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        WITH_V: true
+        DEFAULT_BUMP: patch
+        RELEASE_BRANCHES: main
+        DRY_RUN: true
+
+    # Generate tag without "v"
+    - name: Generate Tag without 'v'
+      id: generate_tag_without_v
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        WITH_V: false
+        DEFAULT_BUMP: patch
+        RELEASE_BRANCHES: main
+        DRY_RUN: true
+
+    - name: Generate Nexus image repository path
+      id: generate_nexus_image_repository_path
+      run: |
+        echo NEXUS_IMAGE_REPOSITORY=$(echo ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+
+    - name: Generate DockerHub image repository path
+      id: generate_dockerhub_image_repository_path
+      run: |
+        echo DOCKERHUB_IMAGE_REPOSITORY=$(echo stakaterdockerhubpullroot/tenant-operator | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+
+    outputs:
+      nexus_image_repository: ${{ env.NEXUS_IMAGE_REPOSITORY }}
+      dockerhub_image_repository: ${{ env.DOCKERHUB_IMAGE_REPOSITORY }}
+      new_tag: ${{ steps.generate_tag.outputs.new_tag }}
+      new_tag_without_v: ${{ steps.generate_tag_without_v.outputs.new_tag }}
+
+  push-operator-to-nexus:
+    name: Push operator to Nexus
+    needs: ["operator-push-setup"]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Set up helm binary
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ inputs.HELM_VERSION }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to Nexus Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ secrets.STAKATER_NEXUS_REGISTRY }}
+        username: ${{ secrets.STAKATER_NEXUS_USERNAME }}
+        password: ${{ secrets.STAKATER_NEXUS_PASSWORD }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ${{ inputs.DOCKERFILE_PATH  }}
+        pull: true
+        push: true
+        cache-to: type=inline
+        tags: |
+          ${{ needs.operator-push-setup.outputs.nexus_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}
+        labels: |
+          org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+          org.opencontainers.image.revision=${{ github.sha }}
+
+    # Update chart tag to the latest semver tag
+    - name: Update Chart Version
+      env:
+        VERSION: ${{ needs.operator-push-setup.outputs.new_tag_without_v }}
+      run: make bump-chart
+
+    - name: Update Chart CRDs
+      run: make generate-crds
+
+    # Publish helm chart to nexus
+    - name: Publish Helm chart
+      run: |
+        helm package ./charts/* --destination ./packaged-chart
+        curl -u ${{ secrets.STAKATER_NEXUS_HELM_USERNAME }}:${{ secrets.STAKATER_NEXUS_HELM_PASSWORD }} ${{ secrets.STAKATER_NEXUS_HELM_REGISTRY }} --upload-file ./packaged-chart/*.tgz
+        rm -rf ./packaged-chart
+
+    # Commit back changes
+    - name: Commit files
+      run: |
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
+        git status
+        git add .
+        git commit -m "[skip-ci] Update artifacts" -a
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        branch: main
+
+    - name: Push Latest Tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        WITH_V: true
+        RELEASE_BRANCHES: main
+        DEFAULT_BUMP: patch
+
+    - name: Comment on PR
+      uses: mshick/add-pr-comment@v2
+      if: always()
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+      with:
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.operator-push-setup.outputs.nexus_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}`'
+        message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
+        allow-repeats: true
+
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      if: always() # Pick up events even if the job fails or is canceled.
+      with:
+        status: ${{ job.status }}
+        fields: repo,author,action,eventName,ref,workflow
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
+
+  push-operator-to-dockerhub:
+    name: Push operator to DockerHub
+    if: ${{ inputs.PUBLISH_TO_DOCKERHUB }}
+    needs: ["operator-push-setup", "push-operator-to-nexus"]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Set up helm binary
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ inputs.HELM_VERSION }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to DockerHub Registry
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.STAKATER_DOCKERHUB_PULL_USER }}
+        password: ${{ secrets.STAKATER_DOCKERHUB_PULL_SECRET }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        file: ${{ inputs.DOCKERFILE_PATH  }}
+        pull: true
+        push: true
+        cache-to: type=inline
+        tags: |
+          ${{ needs.operator-push-setup.outputs.dockerhub_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}
+        labels: |
+          org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+          org.opencontainers.image.revision=${{ github.sha }}
+
+    - name: Copy owner-role to charts
+      run: |
+        cp config/rbac/owner_role.yaml charts/tenant-operator/templates/
+
+      # Publish helm chart
+    - name: Publish Helm chart
+      uses: stefanprodan/helm-gh-pages@v2
+      with:
+        branch: master
+        repository: stakater-charts
+        target_dir: docs
+        token: ${{ secrets.STAKATER_GITHUB_HELM_REGISTRY }}
+        charts_dir: charts/
+        charts_url: ${{ inputs.STAKATER_HELM_REGISTRY_URL }}
+        owner: stakater
+        linting: on
+        commit_username: stakater-user
+        commit_email: stakater@gmail.com
+
+    - name: Comment on PR
+      uses: mshick/add-pr-comment@v2
+      if: always()
+      env:
+        GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+      with:
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.operator-push-setup.outputs.dockerhub_image_repository }}:${{ needs.operator-push-setup.outputs.new_tag }}`'
+        message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
+        allow-repeats: true
+
+    - name: Notify Slack
+      uses: 8398a7/action-slack@v3
+      if: always() # Pick up events even if the job fails or is canceled.
+      with:
+        status: ${{ job.status }}
+        fields: repo,author,action,eventName,ref,workflow
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
