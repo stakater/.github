@@ -323,7 +323,7 @@ jobs:
 
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
-      if: always() && (needs.publish-image.result != 'success') || (needs.publish-bundle.result != 'success' && needs.publish-bundle.result != 'skipped')
+      if: always() && (needs.publish-image.result == 'failure') || (needs.publish-bundle.result == 'failure')
       with:
         status: custom
         fields: repo,author,action,eventName,ref,workflow
