@@ -20,21 +20,6 @@ on:
         required: true
         type: string
 
-      HELM_CHARTS_FILE_PATH:
-        description: Helm charts path
-        required: true
-        type: string
-
-      HELM_CHART_TEMPLATE_NAME:
-        description: Helm template chart name
-        required: true
-        type: string
-
-      HELM_CHART_NAMESPACE_NAME:
-        description: Helm chart namespace name for templates
-        required: true
-        type: string
-
       HELM_VERSION:
         description: Helm version to use
         default: "v3.8.2"
