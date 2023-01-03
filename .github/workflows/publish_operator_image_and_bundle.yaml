@@ -64,6 +64,10 @@ on:
         description: "Pyxis API token to run Preflight"
         required: true
 
+      STAKATER_GITHUB_TOKEN:
+        description: "Secret to create branch in stakater/certified-operators repository"
+        required: true
+
       ADMIN_TOKEN:
         description: "Secret to create branch in stakater/certified-operators repository"
         required: true
@@ -200,11 +204,12 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        persist-credentials: false
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
-          echo "Required Secrets 'ADMIN_TOKEN' is not set!"
+        if [ "${{ secrets.STAKATER_GITHUB_TOKEN }}" == "" ] || [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_GITHUB_TOKEN' or 'ADMIN_TOKEN' is not set!"
           exit 1
         fi
 
@@ -252,6 +257,21 @@ jobs:
         git add .
         git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
         git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
+
+    # Commit back changes
+    - name: Commit files
+      run: |
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
+        git status
+        git add .
+        git commit -m "[skip-ci] Update artifacts" -a
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.ADMIN_TOKEN }}
+        branch: main
 
   notify-slack:
     name: Slack notification
