@@ -58,6 +58,14 @@ on:
         description: "Nexus docker registry password"
         required: true
 
+      STAKATER_DOCKERHUB_USERNAME:
+        description: "Nexus docker registry username"
+        required: false
+
+      STAKATER_DOCKERHUB_PASSWORD:
+        description: "Nexus docker registry password"
+        required: false
+
       STAKATER_NEXUS_HELM_REGISTRY:
         description: "Nexus helm registry to publish image"
         required: true
@@ -252,6 +260,13 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Check if registry secrets are set
+      run: |
+        if [ "${{ secrets.STAKATER_DOCKERHUB_USERNAME }}" == "" ] || [ "${{ secrets.STAKATER_DOCKERHUB_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_DOCKERHUB_USERNAME' or 'STAKATER_DOCKERHUB_PASSWORD' are not set!"
+          exit 1
+        fi
+
     # Set up helm binary
     - name: Set up Helm
       uses: azure/setup-helm@v3
@@ -272,8 +287,8 @@ jobs:
     - name: Login to DockerHub Registry
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.STAKATER_DOCKERHUB_PULL_USER }}
-        password: ${{ secrets.STAKATER_DOCKERHUB_PULL_SECRET }}
+        username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.STAKATER_DOCKERHUB_PASSWORD }}
 
     - name: Build and push
       uses: docker/build-push-action@v3
