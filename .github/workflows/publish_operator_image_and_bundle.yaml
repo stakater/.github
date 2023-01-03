@@ -170,10 +170,6 @@ jobs:
         preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
         rm -r ./artifacts
 
-    # Wait is required for preflight result submission
-    - name: Wait for image publish
-      run: sleep 3
-
     # Build and push "latest" tag
     # latest tag requires submitted preflight results
     - name: Build and push
@@ -240,6 +236,23 @@ jobs:
         owner: 'stakater'
         repository: 'certified-operators'
         access-token: ${{ secrets.ADMIN_TOKEN }}
+
+    - name: Push branch
+      run: |
+        cd certified-operators
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
+        git remote add upstream https://github.com/redhat-openshift-ecosystem/certified-operators
+        git fetch upstream
+        git merge upstream/main
+        git push --set-upstream origin main
+        git checkout -b mto-${{ needs.publish-image.outputs.latest_tag}}
+        mkdir operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}
+        cp -R ../bundle/manifests operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/manifests
+        cp -R ../bundle/metadata operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/metadata
+        git add .
+        git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
+        git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
 
     # Commit back changes
     - name: Commit files

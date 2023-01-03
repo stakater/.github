@@ -166,6 +166,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        persist-credentials: false
 
     # Set up helm binary
     - name: Set up Helm
@@ -220,6 +221,21 @@ jobs:
         helm package ./charts/* --destination ./packaged-chart
         curl -u ${{ secrets.STAKATER_NEXUS_HELM_USERNAME }}:${{ secrets.STAKATER_NEXUS_HELM_PASSWORD }} ${{ secrets.STAKATER_NEXUS_HELM_REGISTRY }} --upload-file ./packaged-chart/*.tgz
         rm -rf ./packaged-chart
+
+    # Commit back changes
+    - name: Commit files
+      run: |
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
+        git status
+        git add .
+        git commit -m "[skip-ci] Update artifacts" -a
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+        branch: main
 
     - name: Push Latest Tag
       uses: anothrNick/github-tag-action@1.36.0
