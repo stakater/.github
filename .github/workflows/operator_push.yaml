@@ -90,7 +90,7 @@ on:
         required: true
 
 jobs:
-  operator-push-setup:
+  push-operator-setup:
     name: Operator Push Setup
     runs-on: ubuntu-latest
 

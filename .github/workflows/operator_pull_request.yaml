@@ -59,7 +59,7 @@ on:
         required: true
 
 jobs:
-  operator-pull-request:
+  make-operator-pull-request:
     name: Operator Pull Request
     runs-on: ubuntu-latest
 
