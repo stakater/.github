@@ -127,7 +127,7 @@ jobs:
       id: generate_tag
       uses: anothrNick/github-tag-action@v1
       env:
-        ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
         DEFAULT_BUMP: patch
         RELEASE_BRANCHES: main
@@ -138,7 +138,7 @@ jobs:
       id: generate_tag_without_v
       uses: anothrNick/github-tag-action@v1
       env:
-        ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: false
         DEFAULT_BUMP: patch
         RELEASE_BRANCHES: main
@@ -213,25 +213,10 @@ jobs:
         curl -u ${{ secrets.STAKATER_NEXUS_HELM_USERNAME }}:${{ secrets.STAKATER_NEXUS_HELM_PASSWORD }} ${{ secrets.STAKATER_NEXUS_HELM_REGISTRY }} --upload-file ./packaged-chart/*.tgz
         rm -rf ./packaged-chart
 
-    # Commit back changes
-    - name: Commit files
-      run: |
-        git config --local user.email "github-root@stakater.com"
-        git config --local user.name "stakater-github-root"
-        git status
-        git add .
-        git commit -m "[skip-ci] Update artifacts" -a
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.ADMIN_TOKEN }}
-        branch: main
-
     - name: Push Latest Tag
       uses: anothrNick/github-tag-action@v1
       env:
-        ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
         RELEASE_BRANCHES: main
         DEFAULT_BUMP: patch
@@ -240,7 +225,7 @@ jobs:
       uses: mshick/add-pr-comment@v2
       if: always()
       env:
-        ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       with:
         message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
