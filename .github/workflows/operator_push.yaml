@@ -38,7 +38,7 @@ on:
         type: boolean
 
     secrets:
-      GITHUB_TOKEN:
+      ADMIN_TOKEN:
         description: "Secret to pull latest tag"
         required: true
 
@@ -57,6 +57,14 @@ on:
       STAKATER_NEXUS_PASSWORD:
         description: "Nexus docker registry password"
         required: true
+
+      STAKATER_DOCKERHUB_USERNAME:
+        description: "Nexus docker registry username"
+        required: false
+
+      STAKATER_DOCKERHUB_PASSWORD:
+        description: "Nexus docker registry password"
+        required: false
 
       STAKATER_NEXUS_HELM_REGISTRY:
         description: "Nexus helm registry to publish image"
@@ -101,8 +109,8 @@ jobs:
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.GITHUB_TOKEN }}" == "" ] || [ "${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}" == "" ]; then
-          echo "Required Secrets 'GITHUB_TOKEN' or 'STAKATER_DELIVERY_SLACK_WEBHOOK' are not set!"
+        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ] || [ "${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}" == "" ]; then
+          echo "Required Secrets 'ADMIN_TOKEN' or 'STAKATER_DELIVERY_SLACK_WEBHOOK' are not set!"
           exit 1
         fi
 
@@ -125,9 +133,9 @@ jobs:
 
     - name: Generate Tag
       id: generate_tag
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
         DEFAULT_BUMP: patch
         RELEASE_BRANCHES: main
@@ -136,9 +144,9 @@ jobs:
     # Generate tag without "v"
     - name: Generate Tag without 'v'
       id: generate_tag_without_v
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: false
         DEFAULT_BUMP: patch
         RELEASE_BRANCHES: main
@@ -158,6 +166,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
+        persist-credentials: false
 
     # Set up helm binary
     - name: Set up Helm
@@ -225,13 +234,13 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
         branch: main
 
     - name: Push Latest Tag
-      uses: anothrNick/github-tag-action@v1
+      uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
         RELEASE_BRANCHES: main
         DEFAULT_BUMP: patch
@@ -240,7 +249,7 @@ jobs:
       uses: mshick/add-pr-comment@v2
       if: always()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       with:
         message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
@@ -267,6 +276,13 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Check if registry secrets are set
+      run: |
+        if [ "${{ secrets.STAKATER_DOCKERHUB_USERNAME }}" == "" ] || [ "${{ secrets.STAKATER_DOCKERHUB_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'STAKATER_DOCKERHUB_USERNAME' or 'STAKATER_DOCKERHUB_PASSWORD' are not set!"
+          exit 1
+        fi
+
     # Set up helm binary
     - name: Set up Helm
       uses: azure/setup-helm@v3
@@ -287,8 +303,8 @@ jobs:
     - name: Login to DockerHub Registry
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.STAKATER_DOCKERHUB_PULL_USER }}
-        password: ${{ secrets.STAKATER_DOCKERHUB_PULL_SECRET }}
+        username: ${{ secrets.STAKATER_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.STAKATER_DOCKERHUB_PASSWORD }}
 
     - name: Build and push
       uses: docker/build-push-action@v3
@@ -310,7 +326,7 @@ jobs:
 
       # Publish helm chart
     - name: Publish Helm chart
-      uses: stefanprodan/helm-gh-pages@v2
+      uses: stefanprodan/helm-gh-pages@master
       with:
         branch: master
         repository: stakater-charts
@@ -327,7 +343,7 @@ jobs:
       uses: mshick/add-pr-comment@v2
       if: always()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       with:
         message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.dockerhub_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
