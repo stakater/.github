@@ -295,7 +295,7 @@ jobs:
 
       # Publish helm chart
     - name: Publish Helm chart
-      uses: stefanprodan/helm-gh-pages@v2
+      uses: stefanprodan/helm-gh-pages@master
       with:
         branch: master
         repository: stakater-charts
