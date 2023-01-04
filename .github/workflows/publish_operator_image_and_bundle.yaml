@@ -188,6 +188,8 @@ jobs:
         push: true
         build-args: |
           VERSION=${{ steps.latest_tag.outputs.tag }}
+          GIT_TOKEN=${{ secrets.ADMIN_TOKEN }}
+          GIT_USER=${{ inputs.ADMIN_USER }}
         cache-to: type=inline
         tags: |
           ${{ env.IMAGE_REPOSITORY }}:latest
