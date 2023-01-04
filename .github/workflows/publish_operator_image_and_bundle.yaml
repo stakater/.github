@@ -66,11 +66,11 @@ on:
 
       STAKATER_GITHUB_TOKEN:
         description: "Secret to create branch in stakater/certified-operators repository"
-        required: true
+        required: false
 
       ADMIN_TOKEN:
         description: "Secret to commit bundle files"
-        required: true
+        required: false
 
       STAKATER_DELIVERY_SLACK_WEBHOOK:
         description: "Secret to send success/failure message to slack"
