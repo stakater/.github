@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
 
+      ADMIN_USER:
+        description: Admin user name to pull private repository
+        required: false
+        type: string
+
     secrets:
       REGISTRY_REDHAT_IO_PULL_SECRET:
         description: "Secret to pull images for RedHat registry images"
@@ -156,6 +161,8 @@ jobs:
         push: true
         build-args: |
           VERSION=${{ steps.latest_tag.outputs.tag }}
+          GIT_TOKEN=${{ secrets.ADMIN_TOKEN }}
+          GIT_USER=${{ inputs.ADMIN_USER }}
         cache-to: type=inline
         tags: |
           ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }}
