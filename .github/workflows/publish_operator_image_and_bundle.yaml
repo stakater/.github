@@ -69,7 +69,7 @@ on:
         required: true
 
       ADMIN_TOKEN:
-        description: "Secret to create branch in stakater/certified-operators repository"
+        description: "Secret to commit bundle files"
         required: true
 
       STAKATER_DELIVERY_SLACK_WEBHOOK:
@@ -230,12 +230,12 @@ jobs:
     - name: Update Bundle
       run: make bundle
 
-    - name: Clone stakater/certified repository
+    - name: Clone stakater/certified-operators repository
       uses: GuillaumeFalourd/clone-github-repo-action@v2
       with:
         owner: 'stakater'
         repository: 'certified-operators'
-        access-token: ${{ secrets.ADMIN_TOKEN }}
+        access-token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
 
     - name: Push branch
       run: |

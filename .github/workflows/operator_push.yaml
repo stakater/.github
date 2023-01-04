@@ -251,7 +251,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.nexus_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.NEXUS_IMAGE_REPOSITORY }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
@@ -345,7 +345,7 @@ jobs:
       env:
         ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ needs.push-operator-setup.outputs.dockerhub_image_repository }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.DOCKERHUB_IMAGE_REPOSITORY }}:${{ needs.push-operator-setup.outputs.new_tag }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
