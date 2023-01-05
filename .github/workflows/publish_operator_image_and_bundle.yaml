@@ -294,7 +294,7 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-      github_token: ${{ secrets.ADMIN_TOKEN }}
+        github_token: ${{ secrets.ADMIN_TOKEN }}
         branch: main
 
     - name: Set up QEMU
