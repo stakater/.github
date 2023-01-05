@@ -275,7 +275,7 @@ jobs:
         git merge upstream/main
         git push --set-upstream origin main
         git checkout -b mto-${{ needs.publish-image.outputs.latest_tag}}
-        mkdir operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}
+        mkdir operators/tenant-operator/test
         cp -R ../bundle/manifests operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/manifests
         cp -R ../bundle/metadata operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/metadata
         git add .
