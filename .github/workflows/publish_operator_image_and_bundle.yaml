@@ -250,7 +250,7 @@ jobs:
 
     - name: Update Image Digest
       env:
-        OPERATORHUB_IMAGE_DIGEST: ${{ needs.publish-image.outputs.operatorhub_image_digest }}
+        OPERATOR_HUB_IMAGE_DIGEST: ${{ needs.publish-image.outputs.operatorhub_image_digest }}
       run: make update-operator-hub-image-digest
 
     - name: Update Bundle
