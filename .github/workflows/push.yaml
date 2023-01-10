@@ -1,0 +1,32 @@
+name: Push
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false # otherwise your personal token will be used
+          fetch-depth: 0 # otherwise you will fail to push refs to dest repo
+
+      - name: Push Latest Tag
+        uses: anothrNick/github-tag-action@1.52.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: always() # Pick up events even if the job fails or is canceled
+        with:
+          status: ${{ job.status }}
+          fields: repo,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
