@@ -76,7 +76,7 @@ jobs:
           exit 1
         fi
 
-    - name: Check if registry secrets are set
+    - name: Check if slack secret is set
       run: |
         if [ "${{ secrets.SLACK_WEBHOOK_URL }}" == "" ]; then
           echo "Required Secret 'SLACK_WEBHOOK_URL' is not set!"
