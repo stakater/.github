@@ -31,6 +31,21 @@ on:
         required: true
         type: string
 
+      BOT_USERNAME:
+        description: Bot username to create release
+        required: true
+        type: string
+
+      BOT_EMAIL:
+        description: Bot email to create release
+        required: true
+        type: string
+
+      DEFAULT_BRANCH:
+        description: Default branch to push changes
+        required: true
+        type: string
+
     secrets:
       ADMIN_TOKEN:
         description: "Secret to pull latest tag"
@@ -120,7 +135,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
         DEFAULT_BUMP: patch
-        RELEASE_BRANCHES: main
+        RELEASE_BRANCHES: ${{ inputs.DEFAULT_BRANCH }}
         DRY_RUN: true
 
     # Generate tag without "v"
@@ -131,7 +146,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: false
         DEFAULT_BUMP: patch
-        RELEASE_BRANCHES: main
+        RELEASE_BRANCHES: ${{ inputs.DEFAULT_BRANCH }}
         DRY_RUN: true
 
     outputs:
@@ -206,8 +221,8 @@ jobs:
     # Commit back changes
     - name: Commit files
       run: |
-        git config --local user.email "github-root@stakater.com"
-        git config --local user.name "stakater-github-root"
+        git config --local user.email "${{ inputs.BOT_USERNAME }}"
+        git config --local user.name "${{ inputs.BOT_EMAIL }}"
         git status
         git add .
         git commit -m "[skip-ci] Update artifacts" -a
@@ -216,14 +231,14 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ADMIN_TOKEN }}
-        branch: main
+        branch: ${{ inputs.DEFAULT_BRANCH }}
 
     - name: Push Latest Tag
       uses: anothrNick/github-tag-action@1.36.0
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
-        RELEASE_BRANCHES: main
+        RELEASE_BRANCHES: ${{ inputs.DEFAULT_BRANCH }}
         DEFAULT_BUMP: patch
 
     - name: Comment on PR
