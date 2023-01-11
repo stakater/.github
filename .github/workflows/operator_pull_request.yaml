@@ -15,12 +15,12 @@ on:
         required: false
         type: string
       
-      DOCKER_FILE_PATH:
+      DOCKERFILE_PATH:
         description: Dockerfile path
         required: true
         type: string
 
-      HELM_CHARTS_FILE_PATH:
+      HELM_CHARTS_PATH:
         description: Helm charts path
         required: true
         type: string
@@ -42,24 +42,21 @@ on:
         type: string
 
     secrets:
-      ADMIN_TOKEN:
-        description: "Secret to pull latest tag"
-        required: true
-        
-      STAKATER_DELIVERY_SLACK_WEBHOOK:
+
+      SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
         required: true
 
-      STAKATER_NEXUS_REGISTRY:
-        description: "Nexus registry to publish image"
+      REGISTRY_URL:
+        description: "Registry URL to publish image"
         required: true
 
-      STAKATER_NEXUS_USERNAME:
-        description: "Nexus registry username"
+      REGISTRY_USERNAME:
+        description: "Registry username to login"
         required: true
 
-      STAKATER_NEXUS_PASSWORD:
-        description: "Nexus registry password"
+      REGISTRY_PASSWORD:
+        description: "Registry password to login"
         required: true
 
 jobs:
@@ -73,17 +70,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Check if nexus docker secrets are set
+    - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.STAKATER_NEXUS_REGISTRY }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_USERNAME }}" == "" ] || [ "${{ secrets.STAKATER_NEXUS_PASSWORD }}" == "" ]; then
-          echo "Required Secrets 'STAKATER_NEXUS_REGISTRY' or 'STAKATER_NEXUS_USERNAME' or 'STAKATER_NEXUS_PASSWORD' are not set!"
+        if [ "${{ secrets.REGISTRY_URL }}" == "" ] || [ "${{ secrets.REGISTRY_USERNAME }}" == "" ] || [ "${{ secrets.REGISTRY_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'REGISTRY_URL' or 'REGISTRY_USERNAME' or 'REGISTRY_PASSWORD' are not set!"
           exit 1
         fi
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ] || [ "${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}" == "" ]; then
-          echo "Required Secrets 'ADMIN_TOKEN' or 'STAKATER_DELIVERY_SLACK_WEBHOOK' are not set!"
+        if [ "${{ secrets.SLACK_WEBHOOK_URL }}" == "" ]; then
+          echo "Required Secret 'SLACK_WEBHOOK_URL' is not set!"
           exit 1
         fi
 
@@ -113,7 +110,7 @@ jobs:
     # Test Helm Templating
     - name: Test Helm Template
       run: |
-        helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_FILE_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
+        helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
 
     - name: Generate Tag
       id: generate_tag
@@ -128,22 +125,22 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     
-    - name: Login to Nexus Registry
+    - name: Login to Registry
       uses: docker/login-action@v2
       with:
-        registry: ${{ secrets.STAKATER_NEXUS_REGISTRY }}
-        username: ${{ secrets.STAKATER_NEXUS_USERNAME }}
-        password: ${{ secrets.STAKATER_NEXUS_PASSWORD }}
+        registry: ${{ secrets.REGISTRY_URL }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Generate image repository path
       run: |
-        echo IMAGE_REPOSITORY=$(echo ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+        echo IMAGE_REPOSITORY=$(echo ${{ secrets.REGISTRY_URL }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
     - name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: .
-        file: ${{ inputs.DOCKER_FILE_PATH  }}
+        file: ${{ inputs.DOCKERFILE_PATH  }}
         pull: true
         push: true
         cache-to: type=inline
@@ -157,9 +154,9 @@ jobs:
       uses: mshick/add-pr-comment@v2
       if: always()
       env:
-        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ secrets.STAKATER_NEXUS_REGISTRY }}/${{ github.repository }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ secrets.REGISTRY_URL }}/${{ github.repository }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
@@ -170,4 +167,4 @@ jobs:
         status: ${{ job.status }}
         fields: repo,author,action,eventName,ref,workflow
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
