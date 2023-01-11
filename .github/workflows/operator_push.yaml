@@ -129,7 +129,7 @@ jobs:
       new_tag: ${{ steps.generate_tag.outputs.new_tag }}
       new_tag_without_v: ${{ steps.generate_tag_without_v.outputs.new_tag }}
 
-  push-operator-image:
+  push-operator:
     name: Push operator to Container Registry
     needs: ["push-operator-setup"]
     runs-on: ubuntu-latest
