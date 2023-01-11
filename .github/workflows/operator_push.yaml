@@ -206,8 +206,8 @@ jobs:
     # Commit back changes
     - name: Commit files
       run: |
-        git config --local user.email "${{ github.actor }}@users.noreply.github.com"
-        git config --local user.name "${{ github.actor }}"
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
         git status
         git add .
         git commit -m "[skip-ci] Update artifacts" -a
