@@ -42,7 +42,6 @@ on:
         type: string
 
     secrets:
-
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
         required: true

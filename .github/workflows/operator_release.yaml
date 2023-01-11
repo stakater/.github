@@ -10,11 +10,7 @@ on:
         type: string
 
     secrets:
-      ADMIN_TOKEN:
-        description: "Secret to publish release"
-        required: true
-
-      STAKATER_DELIVERY_SLACK_WEBHOOK:
+      SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
         required: true
 
@@ -29,10 +25,10 @@ jobs:
       with:
         fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
 
-    - name: Check if registry secrets are set
+    - name: Check if slack secret is set
       run: |
-        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ] || [ "${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}" == "" ]; then
-          echo "Required Secrets 'ADMIN_TOKEN' or 'STAKATER_DELIVERY_SLACK_WEBHOOK' are not set!"
+        if [ "${{ secrets.SLACK_WEBHOOK_URL }}" == "" ]; then
+          echo "Required secret 'SLACK_WEBHOOK_URL' is not set!"
           exit 1
         fi
 
@@ -40,7 +36,6 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
-      id: go
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@master
@@ -48,7 +43,7 @@ jobs:
         version: latest
         args: release --rm-dist
       env:
-        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
@@ -57,4 +52,4 @@ jobs:
         status: ${{ job.status }}
         fields: repo,author,action,eventName,ref,workflow
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.STAKATER_DELIVERY_SLACK_WEBHOOK }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
