@@ -221,7 +221,7 @@ jobs:
     - name: Push Latest Tag
       uses: anothrNick/github-tag-action@1.36.0
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
         RELEASE_BRANCHES: main
         DEFAULT_BUMP: patch
