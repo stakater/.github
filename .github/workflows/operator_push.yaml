@@ -32,6 +32,10 @@ on:
         type: string
 
     secrets:
+      ADMIN_TOKEN:
+        description: "Secret to pull latest tag"
+        required: true
+
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
         required: true
@@ -85,10 +89,10 @@ jobs:
           exit 1
         fi
 
-    - name: Check if slack secret is set
+    - name: Check if required secrets are set
       run: |
-        if [ "${{ secrets.SLACK_WEBHOOK_URL }}" == "" ]; then
-          echo "Required Secret 'SLACK_WEBHOOK_URL' is not set!"
+        if [ "${{ secrets.SLACK_WEBHOOK_URL }}" == "" ] || [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
+          echo "Required Secret 'SLACK_WEBHOOK_URL' or 'ADMIN_TOKEN' is not set!"
           exit 1
         fi
 
@@ -211,7 +215,7 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.ADMIN_TOKEN }}
         branch: main
 
     - name: Push Latest Tag
