@@ -26,6 +26,11 @@ on:
         required: true
         type: string
 
+      HELM_CHARTS_PATH:
+        description: Helm charts path
+        required: true
+        type: string
+
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -190,7 +195,7 @@ jobs:
     # Publish helm chart
     - name: Publish Helm chart
       run: |
-        helm package ./charts/* --destination ./packaged-chart
+        helm package ${{ inputs.HELM_CHARTS_PATH }} --destination ./packaged-chart
         curl -u ${{ secrets.HELM_REGISTRY_USERNAME }}:${{ secrets.HELM_REGISTRY_PASSWORD }} ${{ secrets.HELM_REGISTRY_URL }} --upload-file ./packaged-chart/*.tgz
         rm -rf ./packaged-chart
 
