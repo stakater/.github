@@ -46,15 +46,15 @@ on:
         description: "Secret to send success/failure message to slack"
         required: true
 
-      REGISTRY_URL:
+      CONTAINER_REGISTRY_URL:
         description: "Registry URL to publish image"
         required: true
 
-      REGISTRY_USERNAME:
+      CONTAINER_REGISTRY_USERNAME:
         description: "Registry username to login"
         required: true
 
-      REGISTRY_PASSWORD:
+      CONTAINER_REGISTRY_PASSWORD:
         description: "Registry password to login"
         required: true
 
@@ -71,8 +71,8 @@ jobs:
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.REGISTRY_URL }}" == "" ] || [ "${{ secrets.REGISTRY_USERNAME }}" == "" ] || [ "${{ secrets.REGISTRY_PASSWORD }}" == "" ]; then
-          echo "Required Secrets 'REGISTRY_URL' or 'REGISTRY_USERNAME' or 'REGISTRY_PASSWORD' are not set!"
+        if [ "${{ secrets.CONTAINER_REGISTRY_URL }}" == "" ] || [ "${{ secrets.CONTAINER_REGISTRY_USERNAME }}" == "" ] || [ "${{ secrets.CONTAINER_REGISTRY_PASSWORD }}" == "" ]; then
+          echo "Required Secrets 'CONTAINER_REGISTRY_URL' or 'CONTAINER_REGISTRY_USERNAME' or 'CONTAINER_REGISTRY_PASSWORD' are not set!"
           exit 1
         fi
 
@@ -127,13 +127,13 @@ jobs:
     - name: Login to Registry
       uses: docker/login-action@v2
       with:
-        registry: ${{ secrets.REGISTRY_URL }}
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
+        registry: ${{ secrets.CONTAINER_REGISTRY_URL }}
+        username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+        password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
     - name: Generate image repository path
       run: |
-        echo IMAGE_REPOSITORY=$(echo ${{ secrets.REGISTRY_URL }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+        echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
     - name: Build and push
       uses: docker/build-push-action@v3
@@ -155,7 +155,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ secrets.REGISTRY_URL }}/${{ github.repository }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.repository }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
