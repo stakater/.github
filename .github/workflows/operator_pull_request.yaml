@@ -89,12 +89,6 @@ jobs:
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
-    - name: Dump github context
-      run:   echo "$GITHUB_CONTEXT"
-      shell: bash
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-
     - name: Lint
       uses: golangci/golangci-lint-action@v3
       with:
@@ -139,7 +133,7 @@ jobs:
 
     - name: Generate image repository path
       run: |
-        echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+        echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
     - name: Build and push
       uses: docker/build-push-action@v3
