@@ -102,7 +102,6 @@ jobs:
       run: |
         if [ "${{ inputs.PRIVATE_REPO }}" != "" ]; then
           git config --global url."https://${{ secrets.STAKATER_GITHUB_TOKEN }}:x-oauth-basic@github.com/stakater-ab/${{ inputs.PRIVATE_REPO }}".insteadOf "https://github.com/stakater-ab/${{ inputs.PRIVATE_REPO }}"
-          exit 1
         fi
 
     - name: Lint
