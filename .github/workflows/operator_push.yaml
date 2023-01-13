@@ -173,7 +173,7 @@ jobs:
 
     - name: Generate container image repository path
       run: |
-        echo CONTAINER_IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+        echo CONTAINER_IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
