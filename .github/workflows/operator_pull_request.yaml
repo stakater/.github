@@ -158,7 +158,7 @@ jobs:
         pull: true
         push: true
         build-args: |
-          MTO_DEPLOY_KEY=${{ secrets.STAKATER_GITHUB_TOKEN }}
+          PRIVATE_REPO_DEPLOY_KEY=${{ secrets.STAKATER_GITHUB_TOKEN }}
         cache-to: type=inline
         tags: |
           ${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}
