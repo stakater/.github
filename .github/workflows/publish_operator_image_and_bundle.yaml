@@ -256,6 +256,15 @@ jobs:
     - name: Update Bundle
       run: make bundle
 
+    # Commit back changes
+    - name: Commit files
+      run: |
+        git config --local user.email "github-root@stakater.com"
+        git config --local user.name "stakater-github-root"
+        git status
+        git add .
+        git commit -m "[skip-ci] Update artifacts" -a
+
     - name: Clone stakater/certified-operators repository
       uses: GuillaumeFalourd/clone-github-repo-action@v2
       with:
@@ -279,15 +288,6 @@ jobs:
         git add .
         git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
         git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
-
-    # Commit back changes
-    - name: Commit files
-      run: |
-        git config --local user.email "github-root@stakater.com"
-        git config --local user.name "stakater-github-root"
-        git status
-        git add .
-        git commit -m "[skip-ci] Update artifacts" -a
 
     - name: Push changes
       uses: ad-m/github-push-action@master
