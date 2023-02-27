@@ -1,0 +1,67 @@
+name: Documentation Quality Assurance
+
+on:
+  workflow_call:
+    inputs:
+      MD_CONFIG:
+        description: Markdown link checker config file
+        required: true
+        type: string
+      DOC_SRC:
+        description: Documentation directory
+        required: true
+        type: string
+      MD_LINT_CONFIG:
+        description: Markdown lint config file
+        required: true
+        type: string
+
+jobs:
+  link_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Link check
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          config-file: ${{inputs.MD_CONFIG}}
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          max-depth: 1
+
+  spell_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Spell check
+        uses: errata-ai/vale-action@v2.0.1
+        with:
+          styles: https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+          files: ${{inputs.DOC_SRC}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  style_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Style check
+        uses: reviewdog/action-languagetool@v1
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          reporter: github-pr-review
+          level: error
+          language: 'en-US'
+          patterns: '**/*.md'
+
+  markdown_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v3.2.0
+        with:
+          files: ${{inputs.DOC_SRC}}
+          config_file: ${{inputs.MD_LINT_CONFIG}}
