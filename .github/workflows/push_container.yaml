@@ -29,6 +29,9 @@ on:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
         required: true
+      GH_TOKEN:
+        description: "GitHub token"
+        required: true
 
 jobs:
   build:
@@ -45,7 +48,7 @@ jobs:
         id: generate_tag
         uses: anothrNick/github-tag-action@1.61.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: ${{ inputs.RELEASE_BRANCH }}
@@ -93,7 +96,7 @@ jobs:
       - name: Comment on PR
         uses: mshick/add-pr-comment@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.CONTAINER_IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.new_tag }}`'
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
@@ -102,7 +105,7 @@ jobs:
       - name: Push Latest Tag
         uses: anothrNick/github-tag-action@1.61.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WITH_V: true
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: ${{ inputs.RELEASE_BRANCH }}
