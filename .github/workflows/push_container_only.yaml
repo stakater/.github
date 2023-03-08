@@ -1,8 +1,13 @@
-name: Container Push and Git Tag
+name: Container Push
 
 on:
   workflow_call:
     inputs:
+      CHECKOUT_BRANCH:
+        description: Branch to checkout for source content
+        default: "main"
+        required: false
+        type: string
       DOCKER_FILE_PATH:
         description: Docker file path
         required: true
@@ -11,10 +16,6 @@ on:
         description: Docker build parameters
         default: ""
         required: false
-        type: string
-      RELEASE_BRANCH:
-        description: Release branch to push changes
-        required: true
         type: string
     secrets:
       CONTAINER_REGISTRY_URL:
@@ -36,23 +37,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
         uses: actions/checkout@v3
         with:
+          ref: ${{ inputs.CHECKOUT_BRANCH }}
           persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
-
-      - name: Generate Tag
-        id: generate_tag
-        uses: anothrNick/github-tag-action@1.61.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: ${{ inputs.RELEASE_BRANCH }}
-          DRY_RUN: true
 
       - name: Generate container image repository path
         run: |
@@ -84,7 +75,7 @@ jobs:
           build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
           cache-to: type=inline
           tags: |
-            ${{ env.CONTAINER_IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.new_tag }}
+            ${{ env.CONTAINER_IMAGE_REPOSITORY }}:${{ github.ref_name }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -94,17 +85,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.CONTAINER_IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.new_tag }}`'
-          message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
+          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.CONTAINER_IMAGE_REPOSITORY }}:${{ github.ref_name }}`'
+          message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! Build has Failed!'
           allow-repeats: false
-
-      - name: Push Latest Tag
-        uses: anothrNick/github-tag-action@1.61.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WITH_V: true
-          DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: ${{ inputs.RELEASE_BRANCH }}
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
