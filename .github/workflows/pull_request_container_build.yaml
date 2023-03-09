@@ -43,7 +43,7 @@ jobs:
         run: |
           sha=${{ github.event.pull_request.head.sha }}
           tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
-          echo "##[set-output name=GIT_TAG;]$(echo ${tag})"
+          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
