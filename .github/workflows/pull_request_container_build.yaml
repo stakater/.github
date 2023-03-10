@@ -7,6 +7,11 @@ on:
         description: Docker file path
         required: true
         type: string
+      DOCKER_BUILD_CONTEXTS:
+        description: Docker build contexts
+        default: ""
+        required: false
+        type: string
       BUILD_PARAMETERS:
         description: Docker build parameters
         default: ""
@@ -69,6 +74,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          build-contexts: ${{ inputs.DOCKER_BUILD_CONTEXTS }}
           file: ${{ inputs.DOCKER_FILE_PATH }}
           pull: true
           push: true
