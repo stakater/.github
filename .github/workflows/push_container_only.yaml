@@ -3,14 +3,14 @@ name: Container Push
 on:
   workflow_call:
     inputs:
-      CHECKOUT_BRANCH:
-        description: Branch to checkout for source content
-        default: "main"
-        required: false
-        type: string
       DOCKER_FILE_PATH:
         description: Docker file path
         required: true
+        type: string
+      DOCKER_BUILD_CONTEXTS:
+        description: Docker build contexts
+        default: ""
+        required: false
         type: string
       BUILD_PARAMETERS:
         description: Docker build parameters
@@ -41,7 +41,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.CHECKOUT_BRANCH }}
           persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
 
@@ -69,6 +68,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          build-contexts: ${{ inputs.DOCKER_BUILD_CONTEXTS }}
           file: ${{ inputs.DOCKER_FILE_PATH }}
           pull: true
           push: true
