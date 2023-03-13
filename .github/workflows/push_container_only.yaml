@@ -12,11 +12,6 @@ on:
         default: ""
         required: false
         type: string
-      DOCKER_SECRETS:
-        description: Docker build secrets
-        default: ""
-        required: false
-        type: string
       BUILD_PARAMETERS:
         description: Docker build parameters
         default: ""
@@ -38,6 +33,11 @@ on:
       GH_TOKEN:
         description: "GitHub token"
         required: true
+      DOCKER_SECRETS:
+        description: Docker build secrets
+        default: ""
+        required: false
+        type: string
 
 jobs:
   build:
