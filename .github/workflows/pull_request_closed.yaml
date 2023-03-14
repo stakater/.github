@@ -1,5 +1,8 @@
 name: Closing a pull request for versioned doc
 
+on:
+  workflow_call
+
 jobs:
   push:
     runs-on: ubuntu-latest

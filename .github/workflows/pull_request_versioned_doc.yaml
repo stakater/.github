@@ -1,5 +1,8 @@
 name: Pull request for versioned doc
 
+on:
+  workflow_call
+
 jobs:
   deploy_doc:
     runs-on: ubuntu-latest
