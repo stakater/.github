@@ -1,0 +1,29 @@
+name: Pull request for versioned doc
+
+jobs:
+  deploy_doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source files
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install doc tools
+        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike
+
+      - name: Configure git user
+        run: |
+          git config --local user.email "github-root@stakater.com"
+          git config --local user.name "stakater-github-root"
+
+      - name: Deploy PR docs
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: mike deploy --push -b pull-request-deployments $HEAD_REF

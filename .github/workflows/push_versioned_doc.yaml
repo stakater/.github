@@ -1,0 +1,44 @@
+name: Push versioned doc
+
+on:
+  workflow_call:
+    secrets:
+      GH_TOKEN:
+        description: "GitHub token"
+        required: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source files
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install doc tools
+        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "github-root@stakater.com"
+          git config --local user.name "stakater-github-root"
+
+      - name: Deploy content
+        run: mike deploy --push ${{ github.ref_name }}
+
+      - name: Set default doc version
+        run: mike set-default --push main
+
+      - name: Push Latest Tag
+        uses: anothrNick/github-tag-action@1.61.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
