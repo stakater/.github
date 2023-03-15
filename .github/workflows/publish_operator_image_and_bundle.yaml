@@ -119,7 +119,7 @@ jobs:
         fi
 
     - name: Set up GO
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
@@ -242,7 +242,7 @@ jobs:
         fi
 
     - name: Set up GO
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
