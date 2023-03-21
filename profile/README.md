@@ -4,7 +4,7 @@
 
 Stakater has contributed to the open source community since 2015.
 
-Stakater delivers multi-tenancy for OpenShift through [Multi Tenant Operator](https://www.stakater.com/mto).
+Stakater delivers multi-tenancy for OpenShift and Kubernetes through [Multi Tenant Operator](https://www.stakater.com/mto).
 
 [Consultancy](https://www.stakater.com/kubernetes-consultancy) is available from certified Kubernetes professionals.
 
