@@ -39,8 +39,8 @@ jobs:
       - name: Configure Git user
         if: steps.branch_check.outputs.matched == 'true'
         run: |
-          git config --local user.email "github-root@stakater.com"
-          git config --local user.name "stakater-github-root"
+          git config --local user.email "stakater@gmail.com"
+          git config --local user.name "stakater-user"
 
       - name: Delete removed version
         if: steps.branch_check.outputs.matched == 'true'
