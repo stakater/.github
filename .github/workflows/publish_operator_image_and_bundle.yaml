@@ -263,8 +263,8 @@ jobs:
     # Commit back changes
     - name: Commit files
       run: |
-        git config --local user.email "github-root@stakater.com"
-        git config --local user.name "stakater-github-root"
+        git config --local user.email "stakater@gmail.com"
+        git config --local user.name "stakater-user"
         git status
         git add .
         git commit -m "[skip-ci] Update artifacts" -a
@@ -279,8 +279,8 @@ jobs:
     - name: Push branch
       run: |
         cd certified-operators
-        git config --local user.email "github-root@stakater.com"
-        git config --local user.name "stakater-github-root"
+        git config --local user.email "stakater@gmail.com"
+        git config --local user.name "stakater-user"
         git remote add upstream https://github.com/redhat-openshift-ecosystem/certified-operators
         git fetch upstream
         git merge upstream/main
