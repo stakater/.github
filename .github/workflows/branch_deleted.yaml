@@ -25,6 +25,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+          persist-credentials: false
 
       - name: Set up Python
         if: steps.branch_check.outputs.matched == 'true'
