@@ -21,7 +21,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v4
