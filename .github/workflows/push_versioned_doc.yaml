@@ -30,6 +30,7 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
+          git config --local url."git@github.com:".insteadOf "https://github.com/"
 
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
