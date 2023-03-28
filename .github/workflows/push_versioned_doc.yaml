@@ -2,6 +2,11 @@ name: Push versioned doc
 
 on:
   workflow_call:
+    inputs:
+      VERSION:
+        description: Docs version
+        required: true
+        type: string
     secrets:
       GH_TOKEN:
         description: "GitHub token"
@@ -33,10 +38,10 @@ jobs:
           git config --local url."git@github.com:".insteadOf "https://github.com/"
 
       - name: Deploy content
-        run: mike deploy --push ${{ github.ref_name }}
+        run: mike deploy --push ${{ inputs.VERSION }}
 
       - name: Set default doc version
-        run: mike set-default --push main
+        run: mike set-default --push ${{ inputs.VERSION }}
 
       - name: Push Latest Tag
         uses: anothrNick/github-tag-action@1.61.0
