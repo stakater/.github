@@ -35,11 +35,11 @@ jobs:
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
 
-      - name: Set alias for current version
-        run: mike alias ${{ github.ref_name }} ${{ github.ref_name }}
+      - name: Set alias
+        run: mike alias --push main latest
 
       - name: Set default doc version
-        run: mike set-default --push main
+        run: mike set-default --push latest
 
       - name: Push Latest Tag
         uses: anothrNick/github-tag-action@1.61.0
