@@ -1,7 +1,11 @@
 name: Closing a pull request for versioned doc
 
 on:
-  workflow_call
+  workflow_call:
+    secrets:
+      GH_TOKEN:
+        description: "GitHub token"
+        required: true
 
 jobs:
   push:
@@ -12,7 +16,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          persist-credentials: false
+          persist-credentials: true
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,7 +31,6 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
-          git config --local url."git@github.com:".insteadOf "https://github.com/"
 
       - name: Delete redundant PR deployment
         env:
