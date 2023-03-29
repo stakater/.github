@@ -35,6 +35,9 @@ jobs:
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
 
+      - name: Set alias for current version
+        run: mike alias ${{ github.ref_name }} ${{ github.ref_name }}
+
       - name: Set default doc version
         run: mike set-default --push main
 
