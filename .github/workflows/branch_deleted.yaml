@@ -50,7 +50,7 @@ jobs:
 
       - name: Push Latest Tag
         if: steps.branch_check.outputs.matched == 'true'
-        uses: anothrNick/github-tag-action@1.61.0
+        uses: anothrNick/github-tag-action@1.62.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WITH_V: true

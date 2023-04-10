@@ -130,7 +130,7 @@ jobs:
 
     - name: Generate Tag
       id: generate_tag
-      uses: anothrNick/github-tag-action@1.61.0
+      uses: anothrNick/github-tag-action@1.62.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
@@ -141,7 +141,7 @@ jobs:
     # Generate tag without "v"
     - name: Generate Tag without 'v'
       id: generate_tag_without_v
-      uses: anothrNick/github-tag-action@1.61.0
+      uses: anothrNick/github-tag-action@1.62.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: false
@@ -238,7 +238,7 @@ jobs:
         branch: ${{ inputs.RELEASE_BRANCH }}
 
     - name: Push Latest Tag
-      uses: anothrNick/github-tag-action@1.61.0
+      uses: anothrNick/github-tag-action@1.62.0
       env:
         GITHUB_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         WITH_V: true
