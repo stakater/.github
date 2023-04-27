@@ -35,4 +35,4 @@ jobs:
       - name: Deploy PR docs
         env:
           HEAD_REF: ${{ github.head_ref }}
-        run: mike deploy --push -b pull-request-deployments $HEAD_REF
+        run: mike deploy --push -b pull-request-deployments ${HEAD_REF//\//-}
