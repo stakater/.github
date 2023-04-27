@@ -35,4 +35,4 @@ jobs:
       - name: Delete redundant PR deployment
         env:
           HEAD_REF: ${{ github.head_ref }}
-        run: mike delete --push -b pull-request-deployments $HEAD_REF
+        run: mike delete --push -b pull-request-deployments ${HEAD_REF//\//-}
