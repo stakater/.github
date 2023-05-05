@@ -11,7 +11,7 @@ on:
 
       GOLANG_CI_LINT_VERSION:
         description: golang-ci-lint version to use
-        default: "v1.50.1"
+        default: "v1.52.2"
         required: false
         type: string
       
