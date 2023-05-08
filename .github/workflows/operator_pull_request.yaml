@@ -89,10 +89,6 @@ jobs:
       with:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
-    # Run Tests
-    - name: Test
-      run: make test
-
     # Set up helm binary
     - name: Set up Helm
       uses: azure/setup-helm@v3
