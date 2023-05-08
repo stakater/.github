@@ -109,6 +109,7 @@ jobs:
     # Test Helm Templating
     - name: Test Helm Template
       run: |
+        helm dependency build ${{ inputs.HELM_CHARTS_PATH }}
         helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
 
     - name: Generate Tag
