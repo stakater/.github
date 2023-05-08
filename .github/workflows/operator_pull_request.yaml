@@ -5,7 +5,7 @@ on:
     inputs:
       GOLANG_VERSION:
         description: Go version to use
-        default: "~1.18"
+        default: "~1.19"
         required: false
         type: string
 
