@@ -25,7 +25,7 @@ jobs:
           python-version: 3.11
 
       - name: Install doc tools
-        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike
+        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike mkdocs-glightbox
 
       - name: Configure Git user
         run: |

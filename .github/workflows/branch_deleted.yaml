@@ -36,7 +36,7 @@ jobs:
 
       - name: Install doc tools
         if: steps.branch_check.outputs.matched == 'true'
-        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike
+        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike mkdocs-glightbox
 
       - name: Configure Git user
         if: steps.branch_check.outputs.matched == 'true'
