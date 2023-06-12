@@ -218,6 +218,7 @@ jobs:
     # Publish helm chart
     - name: Publish Helm chart
       run: |
+        helm dependency build ${{ inputs.HELM_CHARTS_PATH }}
         helm package ${{ inputs.HELM_CHARTS_PATH }} --destination ./packaged-chart
         curl -u ${{ secrets.HELM_REGISTRY_USERNAME }}:${{ secrets.HELM_REGISTRY_PASSWORD }} ${{ secrets.HELM_REGISTRY_URL }} --upload-file ./packaged-chart/*.tgz
         rm -rf ./packaged-chart
