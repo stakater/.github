@@ -23,7 +23,7 @@ on:
 
       OPERATOR_SDK_VERSION:
         description: OperatorSdk version to use
-        default: "v1.26.0"
+        default: "v1.29.0"
         required: false
         type: string
 
