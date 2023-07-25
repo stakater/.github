@@ -47,6 +47,11 @@ on:
         description: Admin user name to pull private repository
         required: false
         type: string
+      
+      SUBPATH:
+        description: Custom path for docker build
+        required: true
+        type: string
 
     secrets:
       REGISTRY_REDHAT_IO_PULL_SECRET:
@@ -171,7 +176,7 @@ jobs:
       id: build_and_push
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ${{ inputs.SUBPATH }}
         file: ${{ inputs.DOCKER_FILE_PATH  }}
         pull: true
         push: true
@@ -198,7 +203,7 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: .
+        context: ${{ inputs.SUBPATH }}
         file: ${{ inputs.DOCKER_FILE_PATH  }}
         pull: true
         push: true
