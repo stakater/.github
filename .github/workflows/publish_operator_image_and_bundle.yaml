@@ -50,7 +50,7 @@ on:
       
       SUBPATH:
         description: Custom path for docker build
-        required: false
+        required: true
         type: string
 
     secrets:
