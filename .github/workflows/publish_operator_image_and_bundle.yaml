@@ -49,7 +49,7 @@ on:
         type: string
       
       SUBPATH:
-        description: Required to provide custom path for docker build
+        description: Custom path for docker build
         required: false
         type: string
 
