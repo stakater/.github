@@ -47,6 +47,10 @@ on:
         description: Admin user name to pull private repository
         required: false
         type: string
+      
+      SUBPATH:
+        required: true
+        type: string
 
     secrets:
       REGISTRY_REDHAT_IO_PULL_SECRET:
