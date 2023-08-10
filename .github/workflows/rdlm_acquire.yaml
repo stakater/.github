@@ -36,4 +36,4 @@ jobs:
         env:
           RDLM_URL: ${{ inputs.RDLM_URL }}
         run: |
-          bash .github/rdlm/acquire.sh ${{ inputs.RESOURCE_NAME }} ${{ inputs.LIFETIME }} ${{ inputs.WAIT }}
+          bash .github/scripts/rdlm_acquire.sh ${{ inputs.RESOURCE_NAME }} ${{ inputs.LIFETIME }} ${{ inputs.WAIT }}
