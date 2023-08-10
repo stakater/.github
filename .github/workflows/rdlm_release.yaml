@@ -25,4 +25,4 @@ jobs:
         env:
           RDLM_URL: ${{ inputs.RDLM_URL }}
         run: |
-          bash .github/rdlm/release.sh ${{ inputs.RESOURCE_NAME }}
+          bash .github/scripts/rdlm_release.sh ${{ inputs.RESOURCE_NAME }}
