@@ -20,7 +20,7 @@ jobs:
   link_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Link check
         uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -32,7 +32,7 @@ jobs:
   spell_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Spell check
@@ -46,7 +46,7 @@ jobs:
   style_check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Style check
         uses: reviewdog/action-languagetool@v1
         with:
@@ -59,7 +59,7 @@ jobs:
   markdown_lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: markdownlint-cli
         uses: nosborn/github-action-markdown-cli@v3.3.0
         with:
