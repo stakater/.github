@@ -1,0 +1,54 @@
+name: Push versioned mkdocs
+
+on:
+  workflow_call:
+    secrets:
+      GH_TOKEN:
+        description: "GitHub token"
+        required: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source files
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          persist-credentials: true
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install mike
+        run: pip3 install mike
+
+      - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
+        run: |
+          chmod +x prepare_theme.sh
+          ./prepare_theme.sh
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "stakater@gmail.com"
+          git config --local user.name "stakater-user"
+
+      - name: Deploy content
+        run: mike deploy --push ${{ github.ref_name }}
+
+      - name: Set alias
+        run: mike alias --push main latest
+
+      - name: Set default doc version
+        run: mike set-default --push latest
+
+      - name: Push Latest Tag
+        uses: anothrNick/github-tag-action@1.61.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
