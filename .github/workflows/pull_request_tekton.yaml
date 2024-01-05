@@ -51,7 +51,7 @@ jobs:
 
       - name: Test and Package Helm Chart
         run: |
-          sed -i "s/^version:.*/version:  ${{ steps.generate_tag.outputs.GIT_TAG }}/" helm/Chart.yaml
+          sed -i "s/^version:.*/version: ${{ steps.generate_tag.outputs.GIT_TAG }}/" helm/Chart.yaml
           helm lint helm/
           helm -n test template ${{ inputs.HELM_PACKAGE_NAME }} helm/
           helm package helm/

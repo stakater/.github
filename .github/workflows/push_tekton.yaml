@@ -56,14 +56,14 @@ jobs:
 
       - name: Test and Package Helm Chart
         run: |
-          sed -i "s/^version:.*/version:  ${{ steps.generate_tag.outputs.new_tag }}/" helm/Chart.yaml
+          sed -i "s/^version:.*/version: ${{ steps.generate_tag.outputs.new_tag }}/" helm/Chart.yaml
           helm lint helm/
-          helm -n test template $inputs.HELM_PACKAGE_NAME helm/
+          helm -n test template ${{ inputs.HELM_PACKAGE_NAME }} helm/
           helm package helm/
 
       - name: Push Helm Chart to Registry
         run: |
-          helm push $inputs.HELM_PACKAGE_NAME-${{ steps.generate_tag.outputs.new_tag }}.tgz oci://ghcr.io/stakater/charts
+          helm push ${{ inputs.HELM_PACKAGE_NAME }}-${{ steps.generate_tag.outputs.new_tag }}.tgz oci://ghcr.io/stakater/charts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -74,14 +74,14 @@ jobs:
 
       - name: Render Helm Chart
         run: |
-          helm template $inputs.HELM_PACKAGE_NAME helm > task/$inputs.HELM_PACKAGE_NAME/$inputs.HELM_PACKAGE_NAME.yaml
+          helm template ${{ inputs.HELM_PACKAGE_NAME }} helm > task/${{ inputs.HELM_PACKAGE_NAME }}/${{ inputs.HELM_PACKAGE_NAME }}.yaml
 
       - name: Commit Changes
         run: |
           git pull --quiet origin main || true
           git config --global user.email "stakater@gmail.com"
           git config --global user.name "stakater-user"
-          git add task/$inputs.HELM_PACKAGE_NAME/$inputs.HELM_PACKAGE_NAME.yaml
+          git add task/${{ inputs.HELM_PACKAGE_NAME }}/${{ inputs.HELM_PACKAGE_NAME }}.yaml
           git commit -m "[skip ci] Add rendered and modified Helm chart"
 
       - name: Push changes
