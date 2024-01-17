@@ -41,8 +41,7 @@ jobs:
       - name: Spell check
         uses: errata-ai/vale-action@v2.0.1
         with:
-          version: 2.30.0
-          styles: https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+          version: 3.0.5
           files: ${{inputs.DOC_SRC}}
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
