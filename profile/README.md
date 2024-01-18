@@ -9,3 +9,5 @@ Stakater delivers multi-tenancy for OpenShift and Kubernetes through [Multi Tena
 [Consultancy](https://www.stakater.com/kubernetes-consultancy) is available from certified Kubernetes professionals.
 
 See what roles we recruit for on our [careers page](https://www.stakater.com/careers).
+
+Explore our [Tekton Catalog](https://github.com/stakater-tekton-catalog), a collection of structured Tekton pipelines and tasks to accelerate your CI/CD workflows.
