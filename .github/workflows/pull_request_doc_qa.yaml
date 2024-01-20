@@ -38,14 +38,15 @@ jobs:
         with:
           ref: ${{github.event.pull_request.head.sha}}
           submodules: recursive
+      - name: Install Vale
+        run: |
+          wget https://github.com/errata-ai/vale/releases/download/v3.0.5/vale_3.0.5_Linux_64-bit.tar.gz -O vale.tar.gz
+          tar -xvzf vale.tar.gz vale
+          rm vale.tar.gz
       - name: Spell check
-        uses: errata-ai/vale-action@v2.0.1
-        with:
-          version: 2.30.0
-          styles: https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
-          files: ${{inputs.DOC_SRC}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          ./vale sync
+          ./vale ${{inputs.DOC_SRC}}
 
   style_check:
     runs-on: ubuntu-latest
