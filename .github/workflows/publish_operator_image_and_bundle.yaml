@@ -17,7 +17,7 @@ on:
 
       PREFLIGHT_VERSION:
         description: preflight version to use
-        default: "v1.4.3"
+        default: "v1.9.1"
         required: false
         type: string
 
@@ -275,7 +275,7 @@ jobs:
         git commit -m "[skip-ci] Update artifacts" -a
 
     - name: Clone stakater/certified-operators repository
-      uses: GuillaumeFalourd/clone-github-repo-action@v3
+      uses: GuillaumeFalourd/clone-github-repo-action@v2
       with:
         owner: 'stakater'
         repository: 'certified-operators'
