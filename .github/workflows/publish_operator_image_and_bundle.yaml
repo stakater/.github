@@ -275,7 +275,7 @@ jobs:
         git commit -m "[skip-ci] Update artifacts" -a
 
     - name: Clone stakater/certified-operators repository
-      uses: GuillaumeFalourd/clone-github-repo-action@v2
+      uses: GuillaumeFalourd/clone-github-repo-action@v3
       with:
         owner: 'stakater'
         repository: 'certified-operators'
