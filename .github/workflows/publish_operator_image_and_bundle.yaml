@@ -170,7 +170,7 @@ jobs:
     - name: Generate image repository path
       run: |
         echo IMAGE_REPOSITORY=$(echo quay.io/${{ secrets.OPERATORHUB_REPOSITORY }}) >> $GITHUB_ENV
-
+    
     # Build and push tag
     - name: Build and push
       id: build_and_push
@@ -273,12 +273,6 @@ jobs:
         git status
         git add .
         git commit -m "[skip-ci] Update artifacts" -a
-    
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.ADMIN_TOKEN }}
-        branch: main
 
     - name: Clone stakater/certified-operators repository
       uses: GuillaumeFalourd/clone-github-repo-action@v3
@@ -303,7 +297,14 @@ jobs:
         git add .
         git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
         git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
-
+        cd ..
+    
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.ADMIN_TOKEN }}
+        branch: main
+    
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
