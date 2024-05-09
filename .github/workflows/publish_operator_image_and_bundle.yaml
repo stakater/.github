@@ -17,7 +17,7 @@ on:
 
       PREFLIGHT_VERSION:
         description: preflight version to use
-        default: "v1.9.1"
+        default: "v1.9.4"
         required: false
         type: string
 
@@ -89,7 +89,7 @@ on:
       STAKATER_GITHUB_TOKEN:
         description: "Secret to create branch in stakater/certified-operators repository"
         required: false
-
+      
       ADMIN_TOKEN:
         description: "Secret to commit bundle files"
         required: false
@@ -191,7 +191,7 @@ jobs:
     - name: Run Preflight test
       run: |
         preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
-
+    
     - name: Submit Preflight test
       run: |
         rm -r ./artifacts
@@ -273,6 +273,12 @@ jobs:
         git status
         git add .
         git commit -m "[skip-ci] Update artifacts" -a
+    
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.ADMIN_TOKEN }}
+        branch: main
 
     - name: Clone stakater/certified-operators repository
       uses: GuillaumeFalourd/clone-github-repo-action@v3
@@ -280,7 +286,7 @@ jobs:
         owner: 'stakater'
         repository: 'certified-operators'
         access-token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
-
+    
     - name: Push branch
       run: |
         cd certified-operators
@@ -297,12 +303,6 @@ jobs:
         git add .
         git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
         git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.ADMIN_TOKEN }}
-        branch: main
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
