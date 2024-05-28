@@ -24,8 +24,8 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Install mike
-        run: pip3 install mike
+      - name: Install plugins
+        run: pip3 install mike mkdocs-mermaid2-plugin
 
       - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
         run: |
