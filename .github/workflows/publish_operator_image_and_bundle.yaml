@@ -262,6 +262,9 @@ jobs:
         IMAGE_DIGEST: ${{ needs.publish-image.outputs.operatorhub_image_digest }}
       run: make update-operator-hub-image-digest
 
+    - name: Run go mod tidy 
+      run: go mod tidy
+      
     - name: Update Bundle
       run: make bundle
 
