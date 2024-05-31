@@ -25,7 +25,7 @@ jobs:
           python-version: 3.11
 
       - name: Install mike
-        run: pip3 install mike
+        run: pip3 install mike mkdocs-mermaid2-plugin
 
       - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
         run: |
@@ -36,7 +36,7 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
-
+      
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
 
