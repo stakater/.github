@@ -137,11 +137,10 @@ jobs:
         source: "github"
         preflight: ${{ inputs.PREFLIGHT_VERSION }}
 
-    - name: Get latest tag
-      id: latest_tag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      with:
-        fallback: 1.0.0
+    - name: Get current tag
+      id: current_tag
+      run: |
+        echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -181,21 +180,21 @@ jobs:
         pull: true
         push: true
         build-args: |
-          VERSION=${{ steps.latest_tag.outputs.tag }}
+          VERSION=${{ steps.current_tag.outputs.tag }}
           GIT_TOKEN=${{ secrets.ADMIN_TOKEN }}
           GIT_USER=${{ inputs.ADMIN_USER }}
         cache-to: type=inline
         tags: |
-          ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }}
+          ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }}
 
     - name: Run Preflight test
       run: |
-        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
     
     - name: Submit Preflight test
       run: |
         rm -r ./artifacts
-        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.latest_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
         rm -r ./artifacts
 
     # Build and push "latest" tag
@@ -208,7 +207,7 @@ jobs:
         pull: true
         push: true
         build-args: |
-          VERSION=${{ steps.latest_tag.outputs.tag }}
+          VERSION=${{ steps.current_tag.outputs.tag }}
           GIT_TOKEN=${{ secrets.ADMIN_TOKEN }}
           GIT_USER=${{ inputs.ADMIN_USER }}
         cache-to: type=inline
@@ -217,7 +216,7 @@ jobs:
     
     outputs:
       operatorhub_image_digest: ${{ steps.build_and_push.outputs.digest }}
-      latest_tag: ${{ steps.latest_tag.outputs.tag }}
+      latest_tag: ${{ steps.current_tag.outputs.tag }}
 
   publish-bundle:
     name: Publish Bundle to stakater/certified-operators
