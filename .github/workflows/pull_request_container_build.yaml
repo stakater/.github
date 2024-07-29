@@ -85,7 +85,7 @@ jobs:
           echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.repository }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           build-contexts: ${{ inputs.DOCKER_BUILD_CONTEXTS }}
