@@ -1,4 +1,4 @@
-name: Closing a pull request for versioned mkdocs
+name: Closing a pull request for versioned doc
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Pull request for versioned mkdocs
+name: Pull request for versioned doc
 
 on:
   workflow_call:

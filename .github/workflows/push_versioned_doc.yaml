@@ -1,4 +1,4 @@
-name: Push versioned mkdocs
+name: Push versioned doc
 
 on:
   workflow_call:
