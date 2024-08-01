@@ -1,4 +1,4 @@
-name: Push versioned doc
+name: Push versioned mkdocs
 
 on:
   workflow_call:
@@ -24,14 +24,19 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Install doc tools
-        run: pip3 install mkdocs-material mkdocs-mermaid2-plugin mike mkdocs-glightbox
+      - name: Install mike
+        run: pip3 install mike mkdocs-mermaid2-plugin
+
+      - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
+        run: |
+          chmod +x prepare_theme.sh
+          ./prepare_theme.sh
 
       - name: Configure Git user
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
-
+      
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
 
