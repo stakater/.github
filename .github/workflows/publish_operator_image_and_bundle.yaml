@@ -263,6 +263,8 @@ jobs:
 
     - name: Update Bundle
       run: make bundle
+      env: 
+        VERSION: ${{ needs.publish-image.outputs.latest_tag}}
 
     # Commit back changes
     - name: Commit files
