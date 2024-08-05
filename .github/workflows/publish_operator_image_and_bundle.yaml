@@ -142,6 +142,12 @@ jobs:
       run: |
         echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
 
+    - name: Remove "v" from version
+      id: tag_without_v
+      run: |
+        TAG=${{ steps.current_tag.outputs.tag }}
+        echo "tag=${TAG#v}" >> $GITHUB_OUTPUT
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -217,6 +223,7 @@ jobs:
     outputs:
       operatorhub_image_digest: ${{ steps.build_and_push.outputs.digest }}
       latest_tag: ${{ steps.current_tag.outputs.tag }}
+      tag_without_v: ${{ steps.tag_without_v.outputs.tag }}      
 
   publish-bundle:
     name: Publish Bundle to stakater/certified-operators
@@ -264,7 +271,7 @@ jobs:
     - name: Update Bundle
       run: make bundle
       env: 
-        VERSION: ${{ needs.publish-image.outputs.latest_tag}}
+        VERSION: ${{ needs.publish-image.outputs.tag_without_v}}
 
     # Commit back changes
     - name: Commit files
