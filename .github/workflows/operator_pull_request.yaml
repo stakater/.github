@@ -11,7 +11,7 @@ on:
 
       GOLANG_CI_LINT_VERSION:
         description: golang-ci-lint version to use
-        default: "v1.50.1"
+        default: "v1.53.3"
         required: false
         type: string
 
@@ -96,12 +96,13 @@ jobs:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
     - name: Lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v3
       with:
         version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
         only-new-issues: false
         args: --timeout 10m
-
+        skip-pkg-cache: true
+    
     # Run Tests
     - name: Test
       if: ${{ inputs.RUN_GOLANG_TESTS }}
