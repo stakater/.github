@@ -28,17 +28,17 @@ on:
 
       HELM_CHARTS_PATH:
         description: Helm charts path
-        required: true
+        required: false
         type: string
 
       HELM_CHART_TEMPLATE_NAME:
         description: Helm template chart name
-        required: true
+        required: false
         type: string
 
       HELM_CHART_NAMESPACE_NAME:
         description: Helm chart namespace name for templates
-        required: true
+        required: false
         type: string
 
       HELM_VERSION:
