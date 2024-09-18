@@ -117,14 +117,14 @@ jobs:
 
     # Set up helm binary
     - name: Set up Helm
-      if: ${{ inputs.HELM_VERSION }}
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       uses: azure/setup-helm@v4
       with:
         version: ${{ inputs.HELM_VERSION }}
 
     # Test Helm Templating
     - name: Test Helm Template
-      if: ${{ inputs.HELM_VERSION }}
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: |
         helm dependency build ${{ inputs.HELM_CHARTS_PATH }}
         helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
