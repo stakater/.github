@@ -14,7 +14,13 @@ on:
         default: "v1.50.1"
         required: false
         type: string
-      
+
+      RUN_GOLANG_TESTS:
+        description: Run golang tests
+        default: false
+        required: false
+        type: boolean
+
       DOCKERFILE_PATH:
         description: Dockerfile path
         required: true
@@ -98,16 +104,19 @@ jobs:
 
     # Run Tests
     - name: Test
+      if: ${{ inputs.RUN_GOLANG_TESTS }}
       run: make test
 
     # Set up helm binary
     - name: Set up Helm
+      if: ${{ inputs.HELM_VERSION }}
       uses: azure/setup-helm@v4
       with:
         version: ${{ inputs.HELM_VERSION }}
 
     # Test Helm Templating
     - name: Test Helm Template
+      if: ${{ inputs.HELM_VERSION }}
       run: |
         helm dependency build ${{ inputs.HELM_CHARTS_PATH }}
         helm template ${{ inputs.HELM_CHART_TEMPLATE_NAME }} ${{ inputs.HELM_CHARTS_PATH }} -n ${{ inputs.HELM_CHART_NAMESPACE_NAME }}
@@ -128,7 +137,7 @@ jobs:
         driver-opts: |
             image=moby/buildkit:v0.9.3
         buildkitd-flags: --debug
-    
+
     - name: Login to Registry
       uses: docker/login-action@v3
       with:
