@@ -9,11 +9,23 @@ on:
         required: false
         type: string
 
+      RUN_GOLANG_CI_LINT:
+        description: Run golangci-lint
+        default: true
+        required: false
+        type: boolean
+
       GOLANG_CI_LINT_VERSION:
         description: golang-ci-lint version to use
-        default: "v1.50.1"
+        default: "v1.53.3"
         required: false
         type: string
+
+      RUN_GOLANG_TESTS:
+        description: Run golang tests
+        default: true
+        required: false
+        type: boolean
 
       HELM_VERSION:
         description: Helm version to use
@@ -28,17 +40,19 @@ on:
 
       HELM_CHARTS_PATH:
         description: Helm charts path
-        required: true
+        required: false
         type: string
 
       BOT_USERNAME:
         description: Bot username to create release
-        required: true
+        default: "stakater-github-root"
+        required: false
         type: string
-
+      
       BOT_EMAIL:
         description: Bot email to create release
-        required: true
+        default: "github-root@stakater.com"
+        required: false
         type: string
 
       RELEASE_BRANCH:
@@ -69,15 +83,15 @@ on:
 
       HELM_REGISTRY_URL:
         description: "Helm registry to publish helm chart"
-        required: true
+        required: false
 
       HELM_REGISTRY_USERNAME:
         description: "Username to login to helm registry"
-        required: true
+        required: false
 
       HELM_REGISTRY_PASSWORD:
         description: "Password to login to helm registry"
-        required: true
+        required: false
 
 jobs:
   push-operator-setup:
@@ -98,6 +112,7 @@ jobs:
         fi
 
     - name: Check if helm registry secrets are set
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: |
         if [ "${{ secrets.HELM_REGISTRY_URL }}" == "" ] || [ "${{ secrets.HELM_REGISTRY_USERNAME }}" == "" ] || [ "${{ secrets.HELM_REGISTRY_PASSWORD }}" == "" ]; then
           echo "Required secrets 'HELM_REGISTRY_URL' or 'HELM_REGISTRY_USERNAME' or 'HELM_REGISTRY_PASSWORD' are not set!"
@@ -118,6 +133,7 @@ jobs:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
     - name: Lint
+      if: ${{ inputs.RUN_GOLANG_CI_LINT }}
       uses: golangci/golangci-lint-action@v6
       with:
         version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
@@ -126,6 +142,7 @@ jobs:
 
     # Run Tests
     - name: Test
+      if: ${{ inputs.RUN_GOLANG_TESTS }}
       run: make test
 
     - name: Generate Tag
@@ -167,6 +184,7 @@ jobs:
 
     # Set up helm binary
     - name: Set up Helm
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       uses: azure/setup-helm@v4
       with:
         version: ${{ inputs.HELM_VERSION }}
@@ -184,7 +202,7 @@ jobs:
         driver-opts: |
             image=moby/buildkit:v0.9.3
         buildkitd-flags: --debug
-    
+
     - name: Login to Container Registry
       uses: docker/login-action@v3
       with:
@@ -208,15 +226,18 @@ jobs:
 
     # Update chart tag to the latest semver tag
     - name: Update Chart Version
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       env:
         VERSION: ${{ needs.push-operator-setup.outputs.new_tag_without_v }}
       run: make bump-chart
 
     - name: Update Chart CRDs
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: make generate-crds
 
     # Publish helm chart
     - name: Publish Helm chart
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: |
         helm dependency build ${{ inputs.HELM_CHARTS_PATH }}
         helm package ${{ inputs.HELM_CHARTS_PATH }} --destination ./packaged-chart
@@ -225,6 +246,7 @@ jobs:
 
     # Commit back changes
     - name: Commit files
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: |
         git config --local user.email "${{ inputs.BOT_EMAIL }}"
         git config --local user.name "${{ inputs.BOT_USERNAME }}"
@@ -233,6 +255,7 @@ jobs:
         git commit -m "[skip-ci] Update artifacts" -a
 
     - name: Push changes
+      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ADMIN_TOKEN }}

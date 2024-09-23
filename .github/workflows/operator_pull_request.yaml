@@ -23,7 +23,7 @@ on:
 
       RUN_GOLANG_TESTS:
         description: Run golang tests
-        default: false
+        default: true
         required: false
         type: boolean
 
