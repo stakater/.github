@@ -59,6 +59,12 @@ on:
         required: false
         type: boolean
 
+      OPERATOR_SDK_VERSION:
+        description: Operator SDK version to use
+        default: "v1.32.0"
+        required: false
+        type: string
+
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -192,7 +198,7 @@ jobs:
       uses: redhat-actions/openshift-tools-installer@v1
       with:
         source: "github"
-        operator-sdk: "v1.32.0"
+        operator-sdk: ${{ inputs.OPERATOR_SDK_VERSION }}
 
     - name: Build and Push Bundle and Catalog
       if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
