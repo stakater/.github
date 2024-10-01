@@ -53,6 +53,12 @@ on:
         required: false
         type: string
 
+      BUILD_CUSTOM_CATALOG:
+        description: Build custom catalog
+        default: false
+        required: false
+        type: boolean
+
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -159,6 +165,7 @@ jobs:
 
     - name: Build and push
       uses: docker/build-push-action@v6
+      id: build_and_push
       with:
         context: .
         file: ${{ inputs.DOCKERFILE_PATH  }}
@@ -170,6 +177,29 @@ jobs:
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
+
+    # Build custom catalog
+    - name: Generate Tag
+      if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
+      id: generate_tag_for_catalog
+      run: |
+        sha=${{ github.event.pull_request.head.sha }}
+        tag="${sha:0:8}"
+        echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
+
+    - name: Install CLI tools from OpenShift Mirror
+      if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        source: "github"
+        operator-sdk: "v1.32.0"
+
+    - name: Build and Push Bundle and Catalog
+      if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
+      run: make custom-bundle bundle-build bundle-push catalog-build catalog-push
+      env:
+        IMAGE_DIGEST: ${{ steps.build_and_push.outputs.digest }}
+        PR_TAG: -${{ steps.generate_tag_for_catalog.outputs.GIT_TAG }}
 
     - name: Comment on PR
       uses: mshick/add-pr-comment@v2
