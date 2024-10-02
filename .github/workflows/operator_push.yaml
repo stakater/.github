@@ -48,7 +48,7 @@ on:
         default: "stakater-github-root"
         required: false
         type: string
-      
+
       BOT_EMAIL:
         description: Bot email to create release
         default: "github-root@stakater.com"
@@ -58,6 +58,18 @@ on:
       RELEASE_BRANCH:
         description: Release branch to push changes
         required: true
+        type: string
+
+      BUILD_CUSTOM_CATALOG:
+        description: Build custom catalog
+        default: false
+        required: false
+        type: boolean
+
+      OPERATOR_SDK_VERSION:
+        description: Operator SDK version to use
+        default: "v1.32.0"
+        required: false
         type: string
 
     secrets:
@@ -212,6 +224,7 @@ jobs:
 
     - name: Build and push
       uses: docker/build-push-action@v6
+      id: build_and_push
       with:
         context: .
         file: ${{ inputs.DOCKERFILE_PATH  }}
@@ -223,6 +236,21 @@ jobs:
         labels: |
           org.opencontainers.image.source=${{ github.event.repository.clone_url }}
           org.opencontainers.image.revision=${{ github.sha }}
+
+    # Build custom catalog
+    - name: Install CLI tools from OpenShift Mirror
+      if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        source: "github"
+        operator-sdk: "v1.32.0"
+
+    - name: Build and Push Bundle and Catalog
+      if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
+      run: make custom-bundle bundle-build bundle-push catalog-build catalog-push
+      env:
+        IMAGE_DIGEST: ${{ steps.build_and_push.outputs.digest }}
+        VERSION: ${{  needs.push-operator-setup.outputs.new_tag_without_v }}
 
     # Update chart tag to the latest semver tag
     - name: Update Chart Version
