@@ -243,7 +243,7 @@ jobs:
       uses: redhat-actions/openshift-tools-installer@v1
       with:
         source: "github"
-        operator-sdk: "v1.32.0"
+        operator-sdk: ${{ inputs.OPERATOR_SDK_VERSION }}
 
     - name: Build and Push Bundle and Catalog
       if: ${{ inputs.BUILD_CUSTOM_CATALOG }}
