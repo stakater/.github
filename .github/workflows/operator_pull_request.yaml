@@ -115,7 +115,7 @@ jobs:
 
     - name: Lint
       if: ${{ inputs.Run_GOLANG_CI_LINT }}
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v6
       with:
         version: ${{ inputs.GOLANG_CI_LINT_VERSION }}
         only-new-issues: false
