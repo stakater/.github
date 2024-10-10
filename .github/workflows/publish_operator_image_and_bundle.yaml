@@ -17,7 +17,7 @@ on:
 
       PREFLIGHT_VERSION:
         description: preflight version to use
-        default: "v1.9.4"
+        default: "v1.10.0"
         required: false
         type: string
 
@@ -31,12 +31,12 @@ on:
         description: Certification project ID
         required: true
         type: string
-      
+
       DOCKER_FILE_PATH:
         description: Dockerfile path
         required: true
         type: string
-      
+
       PUBLISH_BUNDLE:
         description: "Publish bundle will publish operator bundle to stakater/certified-operators"
         default: false
@@ -47,7 +47,7 @@ on:
         description: Admin user name to pull private repository
         required: false
         type: string
-      
+
       SUBPATH:
         description: Custom path for docker build
         required: true
@@ -86,10 +86,6 @@ on:
         description: "Pyxis API token to run Preflight"
         required: true
 
-      STAKATER_GITHUB_TOKEN:
-        description: "Secret to create branch in stakater/certified-operators repository"
-        required: false
-      
       ADMIN_TOKEN:
         description: "Secret to commit bundle files"
         required: false
@@ -157,7 +153,7 @@ jobs:
       run: |
         echo ${{ secrets.REGISTRY_REDHAT_IO_PULL_SECRET }} | base64 -d > ~/.docker/config.json
         docker login registry.redhat.io
-    
+
     # For pushing operator image
     - name: Login to Quay Registry
       uses: docker/login-action@v3
@@ -169,11 +165,11 @@ jobs:
     - name: Generate image repository path
       run: |
         echo IMAGE_REPOSITORY=$(echo quay.io/${{ secrets.OPERATORHUB_REPOSITORY }}) >> $GITHUB_ENV
-    
+
     # Build and push tag
     - name: Build and push
       id: build_and_push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.SUBPATH }}
         file: ${{ inputs.DOCKER_FILE_PATH  }}
@@ -200,7 +196,7 @@ jobs:
     # Build and push "latest" tag
     # latest tag requires submitted preflight results
     - name: Build and push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.SUBPATH }}
         file: ${{ inputs.DOCKER_FILE_PATH  }}
@@ -213,7 +209,7 @@ jobs:
         cache-to: type=inline
         tags: |
           ${{ env.IMAGE_REPOSITORY }}:latest
-    
+
     outputs:
       operatorhub_image_digest: ${{ steps.build_and_push.outputs.digest }}
       latest_tag: ${{ steps.current_tag.outputs.tag }}
@@ -233,8 +229,8 @@ jobs:
 
     - name: Check if registry secrets are set
       run: |
-        if [ "${{ secrets.STAKATER_GITHUB_TOKEN }}" == "" ] || [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
-          echo "Required Secrets 'STAKATER_GITHUB_TOKEN' or 'ADMIN_TOKEN' is not set!"
+        if [ "${{ secrets.ADMIN_TOKEN }}" == "" ]; then
+          echo "Required Secrets 'ADMIN_TOKEN' is not set!"
           exit 1
         fi
 
@@ -275,20 +271,16 @@ jobs:
 
     - name: Clone stakater/certified-operators repository
       run: |
-        if [ -z "${{ secrets.STAKATER_GITHUB_TOKEN }}" ]; then
-            git clone https://github.com/stakater/certified-operators.git
-        else
-            git clone https://${{ secrets.STAKATER_GITHUB_TOKEN }}@github.com/stakater/certified-operators.git
-        fi
-        
+        git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/stakater/certified-operators.git
+
         if [ -d "certified-operators" ]; then
             echo "Cloned certified-operators repository successfully."
-            echo "Access the repository content using \"cd certified-operators\"." 
+            echo "Access the repository content using \"cd certified-operators\"."
         else
             echo "Error: Couldn't clone certified-operators repository. Check the inputs or the PAT scope."
             exit 1
         fi
-    
+
     - name: Push branch
       run: |
         cd certified-operators
@@ -305,13 +297,13 @@ jobs:
         git add .
         git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
         git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
-    
+
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ADMIN_TOKEN }}
         branch: main
-    
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -321,7 +313,7 @@ jobs:
         driver-opts: |
             image=moby/buildkit:v0.9.3
         buildkitd-flags: --debug
-    
+
     - name: Login to Nexus Registry
       uses: docker/login-action@v3
       with:
@@ -338,7 +330,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [publish-image, publish-bundle]
     if: always()
-    
+
     steps:
     - name: Notify Slack
       uses: 8398a7/action-slack@v3
