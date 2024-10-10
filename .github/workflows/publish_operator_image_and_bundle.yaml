@@ -186,7 +186,7 @@ jobs:
     - name: Run Preflight test
       run: |
         preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --docker-config ~/.docker/config.json
-    
+
     - name: Submit Preflight test
       run: |
         rm -r ./artifacts
