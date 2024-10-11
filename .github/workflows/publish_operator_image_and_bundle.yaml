@@ -271,7 +271,7 @@ jobs:
 
     - name: Clone stakater/certified-operators repository
       run: |
-        git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/stakater/certified-operators.git
+        git clone https://${{ secrets.ADMIN_TOKEN }}@github.com/stakater/certified-operators.git
 
         if [ -d "certified-operators" ]; then
             echo "Cloned certified-operators repository successfully."
