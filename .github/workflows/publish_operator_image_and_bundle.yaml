@@ -90,6 +90,10 @@ on:
         description: "Secret to commit bundle files"
         required: false
 
+      PUBLISH_TOKEN:
+        description: "Secret to publish bundle to stakater/certified-operators"
+        required: false
+
       STAKATER_DELIVERY_SLACK_WEBHOOK:
         description: "Secret to send success/failure message to slack"
         required: true
@@ -271,7 +275,7 @@ jobs:
 
     - name: Clone stakater/certified-operators repository
       run: |
-        git clone https://${{ secrets.ADMIN_TOKEN }}@github.com/stakater/certified-operators.git
+        git clone https://${{ secrets.PUBLISH_TOKEN }}@github.com/stakater/certified-operators.git
 
         if [ -d "certified-operators" ]; then
             echo "Cloned certified-operators repository successfully."
