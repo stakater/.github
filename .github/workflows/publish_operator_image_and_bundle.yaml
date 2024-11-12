@@ -17,7 +17,7 @@ on:
 
       PREFLIGHT_VERSION:
         description: preflight version to use
-        default: "v1.10.0"
+        default: "v1.10.2"
         required: false
         type: string
 
