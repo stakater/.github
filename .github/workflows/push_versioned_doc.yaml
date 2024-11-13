@@ -46,7 +46,7 @@ jobs:
         run: mike deploy --push ${{ github.ref_name }}
 
       - name: Update 'latest' alias to latest doc version
-        run: mike alias --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
+        run: mike alias --push --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
 
       - name: Set default doc version to the latest alias
         run: mike set-default --push latest
