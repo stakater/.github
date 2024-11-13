@@ -42,8 +42,8 @@ jobs:
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
 
-      - name: Deploy content, create an alias for same version being deployed, and update 'latest' alias to latest doc version
-        run: mike deploy --push ${{ github.ref_name }} ${{ github.ref_name }} --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
+      - name: Deploy content and update 'latest' alias to latest doc version
+        run: mike deploy --push ${{ github.ref_name }} --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
 
       - name: Set default doc version
         run: mike set-default --push latest
