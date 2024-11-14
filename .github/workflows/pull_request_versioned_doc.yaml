@@ -27,10 +27,10 @@ jobs:
       - name: Install plugins
         run: pip3 install mike mkdocs-mermaid2-plugin
 
-      - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
+      - name: Run prepare_theme_pr.sh script from repository to merge theme_common and theme_override folders
         run: |
-          chmod +x prepare_theme.sh
-          ./prepare_theme.sh
+          chmod +x prepare_theme_pr.sh
+          ./prepare_theme_pr.sh
 
       - name: Configure git user
         run: |
