@@ -2,15 +2,22 @@ name: Deleting a branch for versioned doc
 
 on:
   workflow_call:
+    inputs:
+      LATEST_DOC_VERSION:
+        description: Define the latest doc version for multiple versioned doc
+        required: true
+        type: string
     secrets:
       GH_TOKEN:
         description: "GitHub token"
         required: true
 
 jobs:
-  delete:
+  check:
     if: github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
+    outputs:
+      matched: ${{ steps.branch_check.outputs.matched }}
     steps:
       - name: Check if the deleted branch is a version branch
         id: branch_check
@@ -18,9 +25,12 @@ jobs:
         with:
           regex_pattern: '^[0-9]+\.[0-9]+(\.[0-9]+)?$'
           search_string: ${{ github.event.ref }}
-
+  delete:
+    needs: check
+    if: needs.check.outputs.matched == 'true'
+    runs-on: ubuntu-latest
+    steps:
       - name: Checkout source files
-        if: steps.branch_check.outputs.matched == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -29,33 +39,30 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Python
-        if: steps.branch_check.outputs.matched == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
       - name: Install mike
-        if: steps.branch_check.outputs.matched == 'true'
         run: pip3 install mike
 
       - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
-        if: steps.branch_check.outputs.matched == 'true'
         run: |
           chmod +x prepare_theme.sh
           ./prepare_theme.sh
 
       - name: Configure Git user
-        if: steps.branch_check.outputs.matched == 'true'
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
 
-      - name: Delete removed version
-        if: steps.branch_check.outputs.matched == 'true'
+      - name: Delete the version and all its aliases from the branch
         run: mike delete --push ${{ github.event.ref }}
 
+      - name: Update 'latest' alias to latest doc version
+        run: mike alias --push --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
+
       - name: Push Latest Tag
-        if: steps.branch_check.outputs.matched == 'true'
         uses: anothrNick/github-tag-action@1.61.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

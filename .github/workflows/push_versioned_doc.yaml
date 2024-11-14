@@ -48,7 +48,7 @@ jobs:
       - name: Update 'latest' alias to latest doc version
         run: mike alias --push --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
 
-      - name: Set default doc version to the latest alias
+      - name: When publishing a new version, always update the alias to point to the latest version
         run: mike set-default --push latest
 
       - name: Push Latest Tag
