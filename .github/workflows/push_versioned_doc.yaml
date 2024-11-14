@@ -2,6 +2,11 @@ name: Push versioned doc
 
 on:
   workflow_call:
+    inputs:
+      LATEST_DOC_VERSION:
+        description: Define the latest doc version for multiple versioned doc
+        required: true
+        type: string
     secrets:
       GH_TOKEN:
         description: "GitHub token"
@@ -40,10 +45,10 @@ jobs:
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
 
-      - name: Set alias
-        run: mike alias --push main latest
+      - name: Update 'latest' alias to latest doc version
+        run: mike alias --push --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
 
-      - name: Set default doc version
+      - name: When publishing a new version, always update the alias to point to the latest version
         run: mike set-default --push latest
 
       - name: Push Latest Tag

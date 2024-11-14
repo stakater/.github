@@ -6,21 +6,21 @@ on:
         description: "Name of the resource to release"
         required: true
         type: string
-      
+
       RDLM_URL:
         description: "Service path of the RDLM server running on the cluster"
         required: true
         type: string
-      
+
 jobs:
   release-resource:
     name: Release lock
     runs-on: ${{ inputs.RESOURCE_NAME }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Run release.sh
         env:
           RDLM_URL: ${{ inputs.RDLM_URL }}
