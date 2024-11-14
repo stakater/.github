@@ -13,7 +13,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          persist-credentials: false # otherwise your personal token will be used
           fetch-depth: 0 # otherwise you will fail to push refs to dest repo
 
       - name: Push Latest Tag

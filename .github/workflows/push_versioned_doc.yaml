@@ -21,7 +21,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Python
