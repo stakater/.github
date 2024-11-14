@@ -35,7 +35,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Set up Python
@@ -63,7 +62,7 @@ jobs:
         run: mike alias --push --update-aliases ${{ inputs.LATEST_DOC_VERSION }} latest
 
       - name: Push Latest Tag
-        uses: anothrNick/github-tag-action@1.61.0
+        uses: anothrNick/github-tag-action@1.71.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           WITH_V: true
