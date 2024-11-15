@@ -57,6 +57,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message-success: "@${{ github.actor }} Doc deploy will soon be available on https://stakater.github.io/mto-docs/${CURRENT_BRANCH}"
-          message-failure: "@${{ github.actor }} Doc deploy failed!"
+          message-success: "@${{ github.actor }} PR doc deploy will soon be available for review on https://stakater.github.io/mto-docs/${CURRENT_BRANCH}"
+          message-failure: "@${{ github.actor }} PR doc deploy failed!"
           allow-repeats: true
