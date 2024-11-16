@@ -7,10 +7,6 @@ on:
         description: "GitHub token"
         required: true
 
-env:
-  # Store the current head ref as a url friendly variable
-  CURRENT_BRANCH: ${HEAD_REF//\//-}
-
 jobs:
   deploy_doc:
     runs-on: ubuntu-latest
@@ -22,6 +18,12 @@ jobs:
           submodules: recursive
           persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
+
+      - name: Store the current head ref as a url friendly variable
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          CURRENT_BRANCH=$(echo ${HEAD_REF} | sed -e 's/[]:@\/?&=#%+[\!$()*,;]/-/g')
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,8 +44,6 @@ jobs:
           git config --local user.name "stakater-user"
 
       - name: Deploy PR docs
-        env:
-          HEAD_REF: ${{ github.head_ref }}
         run: mike deploy --push -b pull-request-deployments $CURRENT_BRANCH
 
       - name: Update 'latest' alias to latest PR build
