@@ -20,10 +20,12 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Store the current head ref as a url friendly variable
+        id: current_branch
         env:
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          CURRENT_BRANCH=$(echo ${HEAD_REF} | sed -e 's/[]:@\/?&=#%+[\!$()*,;]/-/g')
+          url_friendly_branch=$(echo ${HEAD_REF} | sed -e 's/[]:@\/?&=#%+[\!$()*,;]/-/g')
+          echo "CURRENT_BRANCH=$(echo ${url_friendly_branch})" >> $GITHUB_OUTPUT
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -44,7 +46,7 @@ jobs:
           git config --local user.name "stakater-user"
 
       - name: Delete redundant PR deployment
-        run: mike delete --push -b pull-request-deployments $CURRENT_BRANCH
+        run: mike delete --push -b pull-request-deployments ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
 
       - name: Comment on PR
         uses: mshick/add-pr-comment@v2
