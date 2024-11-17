@@ -19,6 +19,14 @@ jobs:
           persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
 
+      - name: Store the current head ref as a url friendly variable
+        id: current_branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          url_friendly_branch=$(echo ${HEAD_REF} | sed -e 's/[]:@\/?&=#%+[\!$()*,;]/-/g')
+          echo "CURRENT_BRANCH=$(echo ${url_friendly_branch})" >> $GITHUB_OUTPUT
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -27,10 +35,10 @@ jobs:
       - name: Install mike
         run: pip3 install mike
 
-      - name: Run prepare_theme.sh script from repository to merge theme_common and theme_override folders
+      - name: Run prepare_theme_pr.sh script from repository to merge theme_common and theme_override folders
         run: |
-          chmod +x prepare_theme.sh
-          ./prepare_theme.sh
+          chmod +x prepare_theme_pr.sh
+          ./prepare_theme_pr.sh
 
       - name: Configure Git user
         run: |
@@ -38,6 +46,13 @@ jobs:
           git config --local user.name "stakater-user"
 
       - name: Delete redundant PR deployment
+        run: mike delete --push -b pull-request-deployments ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
+
+      - name: Comment on PR
+        uses: mshick/add-pr-comment@v2
         env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: mike delete --push -b pull-request-deployments ${HEAD_REF//\//-}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message-success: "@${{ github.actor }} PR doc deploy was successfully deleted from branch pull-request-deployments"
+          message-failure: "@${{ github.actor }} PR doc deploy failed to be deleted on branch pull-request-deployments!"
+          allow-repeats: true

@@ -7,10 +7,6 @@ on:
         description: "GitHub token"
         required: true
 
-env:
-  # Store the current head ref as a url friendly variable
-  CURRENT_BRANCH: ${HEAD_REF//\//-}
-
 jobs:
   deploy_doc:
     runs-on: ubuntu-latest
@@ -22,6 +18,14 @@ jobs:
           submodules: recursive
           persist-credentials: true
           token: ${{ secrets.GH_TOKEN }}
+
+      - name: Store the current head ref as a url friendly variable
+        id: current_branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          url_friendly_branch=$(echo ${HEAD_REF} | sed -e 's/[]:@\/?&=#%+[\!$()*,;]/-/g')
+          echo "CURRENT_BRANCH=$(echo ${url_friendly_branch})" >> $GITHUB_OUTPUT
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,12 +46,10 @@ jobs:
           git config --local user.name "stakater-user"
 
       - name: Deploy PR docs
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: mike deploy --push -b pull-request-deployments $CURRENT_BRANCH
+        run: mike deploy --push -b pull-request-deployments ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
 
       - name: Update 'latest' alias to latest PR build
-        run: mike alias --push -b pull-request-deployments --update-aliases $CURRENT_BRANCH latest
+        run: mike alias --push -b pull-request-deployments --update-aliases ${{ steps.current_branch.outputs.CURRENT_BRANCH }} latest
 
       - name: When publishing a new version, always update the alias to point to the latest version
         run: mike set-default --push -b pull-request-deployments latest
@@ -57,6 +59,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message-success: "@${{ github.actor }} PR doc deploy will soon be available for review on https://stakater.github.io/mto-docs/${CURRENT_BRANCH}"
+          message-success: "@${{ github.actor }} PR doc deploy will soon be available for review on https://stakater.github.io/mto-docs/${{ steps.current_branch.outputs.CURRENT_BRANCH }}"
           message-failure: "@${{ github.actor }} PR doc deploy failed!"
           allow-repeats: true
