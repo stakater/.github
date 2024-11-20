@@ -3,16 +3,16 @@ name: Documentation Quality Assurance
 on:
   workflow_call:
     inputs:
-      MD_CONFIG:
-        description: Markdown link checker config file
+      DOC_SRC:
+        description: Documentation source
         required: true
         type: string
-      DOC_SRC:
-        description: Documentation directory
+      MD_CONFIG:
+        description: Markdown link-checker configuration file
         required: true
         type: string
       MD_LINT_CONFIG:
-        description: Markdown lint config file
+        description: Markdown linting configuration file
         required: true
         type: string
 
@@ -69,8 +69,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{github.event.pull_request.head.sha}}
-      - name: markdownlint-cli
-        uses: nosborn/github-action-markdown-cli@v3.3.0
+      - name: Convert the spaces in the doc source input to newlines
+        id: doc_src_newlines
+        run: |
+          doc_src_newlines=$(echo "${{inputs.DOC_SRC}}" | sed -e 's/ /\n/g')
+          echo 'DOC_SRC_NEWLINES<<EOF' >> $GITHUB_OUTPUT
+          echo "${doc_src_newlines}" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - name: markdown linting check
+        uses: DavidAnson/markdownlint-cli2-action@v18.0.0
         with:
-          files: ${{inputs.DOC_SRC}}
-          config_file: ${{inputs.MD_LINT_CONFIG}}
+          globs: |
+            ${{ steps.doc_src_newlines.outputs.DOC_SRC_NEWLINES }}
+          config: ${{inputs.MD_LINT_CONFIG}}
