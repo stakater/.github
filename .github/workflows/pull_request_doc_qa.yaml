@@ -73,5 +73,4 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v18.0.0
         with:
           globs: ${{inputs.DOC_SRC}}
-          separator: ','
           config: ${{inputs.MD_LINT_CONFIG}}
