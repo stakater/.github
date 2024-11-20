@@ -69,8 +69,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{github.event.pull_request.head.sha}}
-      - name: markdownlint-cli
-        uses: nosborn/github-action-markdown-cli@v3.3.0
+      - name: markdown linting check
+        uses: DavidAnson/markdownlint-cli2-action@v18.0.0
         with:
-          files: ${{inputs.DOC_SRC}}
-          config_file: ${{inputs.MD_LINT_CONFIG}}
+          globs: ${{inputs.DOC_SRC}}
+          separator: ' '
+          config: ${{inputs.MD_LINT_CONFIG}}
