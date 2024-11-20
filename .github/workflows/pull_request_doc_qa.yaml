@@ -74,7 +74,14 @@ jobs:
         run: |
           doc_src_newlines=$(echo "${{inputs.DOC_SRC}}" | sed -e 's/ /\n/g')
           echo 'DOC_SRC_NEWLINES<<EOF' >> $GITHUB_OUTPUT
-          echo "${doc_src_newlines}" >> $GITHUB_OUTPUT
+          for i in "${doc_src_newlines}"; do
+            if [[ $i == *.md ]]
+            then
+              echo "\n$i" >> $GITHUB_OUTPUT
+            else
+              echo "\n$i/**/*.md" >> $GITHUB_OUTPUT
+            fi
+          done
           echo 'EOF' >> $GITHUB_OUTPUT
       - name: markdown linting check
         uses: DavidAnson/markdownlint-cli2-action@v18.0.0
