@@ -3,16 +3,16 @@ name: Documentation Quality Assurance
 on:
   workflow_call:
     inputs:
-      MD_CONFIG:
-        description: Markdown link checker config file
+      DOC_SRC:
+        description: Documentation source
         required: true
         type: string
-      DOC_SRC:
-        description: Documentation directory
+      MD_CONFIG:
+        description: Markdown link-checker configuration file
         required: true
         type: string
       MD_LINT_CONFIG:
-        description: Markdown lint config file
+        description: Markdown linting configuration file
         required: true
         type: string
 
@@ -73,4 +73,5 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v18.0.0
         with:
           globs: ${{inputs.DOC_SRC}}
+          separator: ' '
           config: ${{inputs.MD_LINT_CONFIG}}
