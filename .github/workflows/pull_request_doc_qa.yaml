@@ -72,7 +72,7 @@ jobs:
       - name: Convert the spaces in the doc source input to newlines
         id: doc_src_newlines
         run: |
-          doc_src_newlines=$(echo ${{inputs.DOC_SRC}} | sed -e 's/ /\n/g')
+          doc_src_newlines=$(echo "${{inputs.DOC_SRC}}" | sed -e 's/ /\n/g')
           echo "DOC_SRC_NEWLINES=$(echo ${doc_src_newlines})" >> $GITHUB_OUTPUT
       - name: markdown linting check
         uses: DavidAnson/markdownlint-cli2-action@v18.0.0
