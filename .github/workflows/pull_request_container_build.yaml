@@ -95,7 +95,7 @@ jobs:
           build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
           cache-to: type=inline
           tags: |
-            ${{ steps.image_output.outputs.IMAGE_PATH }}
+            ${{ steps.image_output_step.outputs.IMAGE_PATH }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -106,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.image_output.outputs.IMAGE_PATH }}`'
+          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.image_output_step.outputs.IMAGE_PATH }}`'
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
           allow-repeats: true
 
