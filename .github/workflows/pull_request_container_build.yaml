@@ -53,6 +53,17 @@ jobs:
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           ref: ${{github.event.pull_request.head.sha}}
 
+      - name: Generate Tag
+        id: generate_tag
+        run: |
+          sha=${{ github.event.pull_request.head.sha }}
+          tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
+          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
+
+      - name: Set image output
+        id: set_output
+        run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -72,17 +83,6 @@ jobs:
       - name: Generate image repository path
         run: |
           echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
-
-      - name: Generate Tag
-        id: generate_tag
-        run: |
-          sha=${{ github.event.pull_request.head.sha }}
-          tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
-          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
-
-      - name: Set image output
-        id: set_output
-        run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Build and push
         uses: docker/build-push-action@v6
