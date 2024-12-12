@@ -42,7 +42,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_output: ${{ steps.image_output_step.outputs.IMAGE_PATH }}
+      image_output: ${{ steps.set_output.outputs.IMAGE_PATH }}
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
@@ -81,7 +81,7 @@ jobs:
           echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
       - name: Set image output
-        id: image_output_step
+        id: set_output
         run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Build and push
@@ -95,7 +95,7 @@ jobs:
           build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
           cache-to: type=inline
           tags: |
-            ${{ steps.image_output_step.outputs.IMAGE_PATH }}
+            ${{ steps.set_output.outputs.IMAGE_PATH }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -106,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.image_output_step.outputs.IMAGE_PATH }}`'
+          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.set_output.outputs.IMAGE_PATH }}`'
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
           allow-repeats: true
 
