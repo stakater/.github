@@ -42,7 +42,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_output: ${{ steps.image_output.outputs.IMAGE_PATH }}
+      image_output: ${{ steps.image_output_step.outputs.IMAGE_PATH }}
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
@@ -81,7 +81,7 @@ jobs:
           echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
       - name: Set image output
-        id: image_output
+        id: image_output_step
         run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Build and push
