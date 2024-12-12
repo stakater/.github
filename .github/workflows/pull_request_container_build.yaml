@@ -54,19 +54,20 @@ jobs:
           ref: ${{github.event.pull_request.head.sha}}
 
       - name: Generate image repository path
+        id: image_repo_path
         run: |
-          echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+          echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_OUTPUT
 
-      - name: Generate Tag
+      - name: Generate image tag
         id: generate_tag
         run: |
           sha=${{ github.event.pull_request.head.sha }}
           tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
           echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
 
-      - name: Set image output
+      - name: Generate image path
         id: set_output
-        run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
+        run: echo "IMAGE_PATH=${{ steps.image_repo_path.outputs.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -83,10 +84,6 @@ jobs:
           registry: ${{ secrets.CONTAINER_REGISTRY_URL }}
           username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
-
-      - name: Generate image repository path
-        run: |
-          echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v6
