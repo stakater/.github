@@ -53,6 +53,10 @@ jobs:
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           ref: ${{github.event.pull_request.head.sha}}
 
+      - name: Generate image repository path
+        run: |
+          echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
+
       - name: Generate Tag
         id: generate_tag
         run: |
@@ -79,10 +83,6 @@ jobs:
           registry: ${{ secrets.CONTAINER_REGISTRY_URL }}
           username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
-
-      - name: Generate image repository path
-        run: |
-          echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v6
