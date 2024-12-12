@@ -42,7 +42,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_output: ${{ steps.set_output.outputs.IMAGE_PATH }}
+      image_output: ${{ steps.image_output.outputs.IMAGE_PATH }}
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
@@ -52,17 +52,6 @@ jobs:
           persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
           fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
           ref: ${{github.event.pull_request.head.sha}}
-
-      - name: Generate Tag
-        id: generate_tag
-        run: |
-          sha=${{ github.event.pull_request.head.sha }}
-          tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
-          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
-
-      - name: Set Output
-        id: set_output
-        run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -84,6 +73,17 @@ jobs:
         run: |
           echo IMAGE_REPOSITORY=$(echo ${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
+      - name: Generate Tag
+        id: generate_tag
+        run: |
+          sha=${{ github.event.pull_request.head.sha }}
+          tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
+          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
+
+      - name: Set image output
+        id: image_output
+        run: echo "IMAGE_PATH=${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -95,7 +95,7 @@ jobs:
           build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
           cache-to: type=inline
           tags: |
-            ${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}
+            ${{ steps.image_output.outputs.IMAGE_PATH }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -106,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ env.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}`'
+          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.image_output.outputs.IMAGE_PATH }}`'
           message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
           allow-repeats: true
 
