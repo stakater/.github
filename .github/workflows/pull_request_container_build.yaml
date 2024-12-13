@@ -37,15 +37,27 @@ on:
       IMAGE_PATH:
         description: "The path of the image created"
         value: ${{ jobs.build.outputs.image_output }}
-      TEST:
-        value: ${{ jobs.build.outputs.test }}
+      TEST1:
+        value: ${{ jobs.build.outputs.test1 }}
+      TEST2:
+        value: ${{ jobs.build.outputs.test2 }}
+      TEST3:
+        value: ${{ jobs.build.outputs.test3 }}
+      TEST4:
+        value: ${{ jobs.build.outputs.test4 }}
+      TEST5:
+        value: ${{ jobs.build.outputs.test5 }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       image_output: ${{ steps.set_output.outputs.IMAGE_PATH }}
-      test: "testing"
+      test1: "testing"
+      test2: ${{ secrets.CONTAINER_REGISTRY_URL }}
+      test3: ${{ github.event.repository.name }}
+      test4: "${{ secrets.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }}"
+      test5: "${{ steps.set_output.outputs.IMAGE_PATH }}"
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
