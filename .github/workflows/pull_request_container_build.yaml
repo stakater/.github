@@ -37,12 +37,15 @@ on:
       IMAGE_PATH:
         description: "The path of the image created"
         value: ${{ jobs.build.outputs.image_output }}
+      TEST:
+        value: ${{ jobs.build.outputs.test }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       image_output: ${{ steps.set_output.outputs.IMAGE_PATH }}
+      test: "testing"
     if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
     steps:
       - name: Check out code
