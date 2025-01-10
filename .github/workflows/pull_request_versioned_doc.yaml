@@ -6,10 +6,16 @@ on:
       GH_TOKEN:
         description: "GitHub token"
         required: true
+    outputs:
+      CURRENT_BRANCH:
+        description: "Current head ref as a url friendly variable"
+        value: ${{ jobs.deploy_doc.outputs.current_branch }}
 
 jobs:
   deploy_doc:
     runs-on: ubuntu-latest
+    outputs:
+      current_branch: ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
     steps:
       - name: Checkout source files
         uses: actions/checkout@v4
