@@ -70,7 +70,7 @@ jobs:
         with:
           ref: ${{github.event.pull_request.head.sha}}
       - name: markdownlint-cli
-        uses: nosborn/github-action-markdown-cli@v3.3.0
+        uses: nosborn/github-action-markdown-cli@v3.4.0
         with:
           files: ${{inputs.DOC_SRC}}
           config_file: ${{inputs.MD_LINT_CONFIG}}
