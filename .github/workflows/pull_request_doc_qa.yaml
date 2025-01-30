@@ -23,13 +23,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{github.event.pull_request.head.sha}}
-      - name: Link check
-        uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - name: Link checking with retries
+        uses: Wandalen/wretry.action@v3
         with:
-          config-file: ${{inputs.MD_CONFIG}}
-          use-quiet-mode: 'yes'
-          use-verbose-mode: 'yes'
-          max-depth: 3
+          action: gaurav-nelson/github-action-markdown-link-check@v1
+          retry_condition: steps._this.conclusion == 'failure'
+          attempt_limit: 2
+          attempt_delay: 60000
+          with: |
+            config-file: ${{inputs.MD_CONFIG}}
+            use-quiet-mode: 'yes'
+            use-verbose-mode: 'yes'
+            max-depth: 3
 
   spell_check:
     runs-on: ubuntu-latest
