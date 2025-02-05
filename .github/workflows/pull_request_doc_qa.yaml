@@ -45,7 +45,7 @@ jobs:
           submodules: recursive
       - name: Install Vale
         run: |
-          wget https://github.com/errata-ai/vale/releases/download/v3.9.4/vale_3.9.4_Linux_64-bit.tar.gz -O vale.tar.gz
+          wget https://github.com/errata-ai/vale/releases/download/v3.9.5/vale_3.9.4_Linux_64-bit.tar.gz -O vale.tar.gz
           tar -xvzf vale.tar.gz vale
           rm vale.tar.gz
       - name: Spell check
