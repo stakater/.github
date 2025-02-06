@@ -80,7 +80,7 @@ on:
 
       OPM_VERSION:
         description: OPM CLI version to use
-        default: "v4.17.15"
+        default: "v1.50.0"
         required: false
         type: string
 
