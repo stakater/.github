@@ -78,6 +78,12 @@ on:
         required: false
         type: string
 
+      OPM_VERSION:
+        description: OPM CLI version to use
+        default: "v4.17.15"
+        required: false
+        type: string
+
     secrets:
       ADMIN_TOKEN:
         description: "Secret to pull latest tag"
@@ -264,6 +270,7 @@ jobs:
       with:
         source: "github"
         operator-sdk: ${{ inputs.OPERATOR_SDK_VERSION }}
+        opm: ${{ inputs.OPM_VERSION }}
 
     - name: Build and Push Bundle
       if: ${{ inputs.BUILD_FILE_BASED_CATALOG }}
