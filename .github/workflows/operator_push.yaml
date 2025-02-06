@@ -306,16 +306,23 @@ jobs:
 
     # Commit back changes
     - name: Commit files
-      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
       run: |
         git config --local user.email "${{ inputs.BOT_EMAIL }}"
         git config --local user.name "${{ inputs.BOT_USERNAME }}"
         git status
         git add .
+        
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          echo "commit_made=false" >> $GITHUB_ENV
+          exit 0
+        fi
+        
         git commit -m "[skip-ci] Update artifacts" -a
+        echo "commit_made=true" >> $GITHUB_ENV
 
     - name: Push changes
-      if: ${{ inputs.HELM_CHARTS_PATH != '' }}
+      if: ${{ env.commit_made == 'true' }}
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.ADMIN_TOKEN }}
