@@ -54,14 +54,14 @@ jobs:
 
       - name: Verify code
         id: verify
-        uses: ./.github/actions/operator/verify
+        uses: stakater/.github/.github/actions/operator/verify@main
         with:
           ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
           ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
 
       - name: Setup Version Tag
         id: tag
-        uses: ./.github/actions/operator/tag
+        uses: stakater/.github/.github/actions/operator/tag@main
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
@@ -69,7 +69,7 @@ jobs:
 
       - name: Setup Docker
         id: docker
-        uses: ./.github/actions/operator/docker
+        uses: stakater/.github/.github/actions/operator/docker@main
         with:
           TAG: ${{ steps.tag.outputs.PR_TAG }}
         env:
@@ -78,7 +78,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: ./.github/actions/operator/build
+        uses: stakater/.github/.github/actions/operator/build@main
         with:
           TAG: ${{ steps.tag.outputs.PR_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
@@ -87,7 +87,7 @@ jobs:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
 
       - name: Notify
-        uses: ./.github/actions/operator/notify
+        uses: stakater/.github/.github/actions/operator/notify@main
         with:
           TAG: ${{ steps.tag.outputs.PR_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
