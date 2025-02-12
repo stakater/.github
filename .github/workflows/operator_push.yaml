@@ -9,21 +9,27 @@ on:
         required: false
         type: boolean
 
-      RELEASE_BRANCH:
-        description: Release branch to push changes
-        required: false
-        type: string
-        default: main
-
       ENABLE_UNIT_TESTS:
         description: Run golang tests
         default: true
         required: false
         type: boolean
 
+      RELEASE_BRANCH:
+        description: Release branch to push changes
+        required: false
+        type: string
+        default: main
+
+      CATALOG_DIR_PATH:
+        description: "The catalog directory path"
+        required: false
+        default: catalog
+        type: string
+
       OPM_VERSION:
         description: OPM CLI version to use
-        default: "v1.50.0"
+        default: v1.50.0
         required: false
         type: string
 
@@ -81,6 +87,8 @@ jobs:
           VERSION: ${{ steps.tag.outputs.TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
+          CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
+          RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
