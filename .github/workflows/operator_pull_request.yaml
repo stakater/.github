@@ -70,8 +70,6 @@ jobs:
       - name: Setup Docker
         id: docker
         uses: stakater/.github/.github/actions/operator/docker@main
-        with:
-          TAG: ${{ steps.tag.outputs.PR_TAG }}
         env:
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
           CONTAINER_REGISTRY_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
@@ -80,6 +78,7 @@ jobs:
       - name: Build & Push
         uses: stakater/.github/.github/actions/operator/build@main
         with:
+          VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
@@ -89,6 +88,7 @@ jobs:
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
         with:
+          VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
         env:
