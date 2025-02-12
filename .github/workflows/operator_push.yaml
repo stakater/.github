@@ -54,7 +54,7 @@ jobs:
 
       - name: Verify code
         id: verify
-        uses: ./.github/actions/verify
+        uses: ./.github/actions/operator/verify
         with:
           GO_VERSION: ${{ inputs.GO_VERSION }}
           ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
@@ -62,7 +62,7 @@ jobs:
 
       - name: Setup Version Tag
         id: tag
-        uses: ./.github/actions/tag
+        uses: ./.github/actions/operator/tag
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
@@ -70,7 +70,7 @@ jobs:
 
       - name: Setup Docker
         id: docker
-        uses: ./.github/actions/docker
+        uses: ./.github/actions/operator/docker
         with:
           TAG: ${{ steps.tag.outputs.TAG }}
         env:
@@ -79,7 +79,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: ./.github/actions/build
+        uses: ./.github/actions/operator/build
         with:
           TAG: ${{ steps.tag.outputs.TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
@@ -88,7 +88,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify
-        uses: ./.github/actions/notify
+        uses: ./.github/actions/operator/notify
         with:
           TAG: ${{ steps.tag.outputs.TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
