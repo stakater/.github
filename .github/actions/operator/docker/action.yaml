@@ -1,10 +1,5 @@
 name: "Setup Docker"
 description: "Setup Docker repository"
-inputs:
-  TAG:
-    description: Git action Tag
-    required: true
-
 outputs:
   IMAGE_REPOSITORY:
     description: "The tag for the workflow run"
