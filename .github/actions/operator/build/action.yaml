@@ -1,9 +1,14 @@
 name: "Build & Push"
 description: "Build and push images"
 inputs:
+  VERSION:
+    description: "The version for the workflow run"
+    required: true
+
   TAG:
     description: "The tag for the workflow run"
-    required: true
+    required: false
+    default: ""
 
   IMAGE_REPOSITORY:
     description: "The tag for the workflow run"
@@ -22,16 +27,25 @@ runs:
         source: "github"
         opm: ${{ inputs.OPM_VERSION }}
 
-    - name: Build and Push Bundle
+    - name: Build and push controller
+      run: make manifests build docker-build docker-push
+      shell: bash
+      env:
+        VERSION: ${{ inputs.VERSION }}
+        GIT_TAG: ${{ inputs.TAG }}
+
+    - name: Build and push bundle
       run: make bundle bundle-build bundle-push
       shell: bash
       env:
+        VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
-    - name: Build and Push Catalog
+    - name: Build and push catalog
       run: make catalog-render catalog-build catalog-push
       shell: bash
       env:
+        VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
     - name: Check if changes are made to catalog

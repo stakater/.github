@@ -1,11 +1,17 @@
 name: "Notify"
 description: "Finalization notification"
 inputs:
-  IMAGE_REPOSITORY:
-    description: "The Docker image repository"
+  VERSION:
+    description: "The version for the workflow run"
     required: true
+
   TAG:
     description: "The tag for the workflow run"
+    required: false
+    default: ""
+
+  IMAGE_REPOSITORY:
+    description: "The Docker image repository"
     required: true
 runs:
   using: "composite"
@@ -24,7 +30,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.TAG }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.VERSION }}${{ inputs.TAG }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
