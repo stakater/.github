@@ -72,7 +72,7 @@ jobs:
         id: docker
         uses: stakater/.github/.github/actions/operator/docker@main
         with:
-          TAG: ${{ steps.tag.outputs.TAG }}
+          VERSION: ${{ steps.tag.outputs.TAG }}
         env:
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
           CONTAINER_REGISTRY_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
@@ -81,7 +81,7 @@ jobs:
       - name: Build & Push
         uses: stakater/.github/.github/actions/operator/build@main
         with:
-          TAG: ${{ steps.tag.outputs.TAG }}
+          VERSION: ${{ steps.tag.outputs.TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
         env:
@@ -90,7 +90,7 @@ jobs:
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
         with:
-          TAG: ${{ steps.tag.outputs.TAG }}
+          VERSION: ${{ steps.tag.outputs.TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
