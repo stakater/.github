@@ -51,23 +51,26 @@ runs:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
-    - name: Build and push catalog
-      run: make catalog-render catalog-build catalog-push
+    - name: Render catalog index
+      run: make catalog-render
       shell: bash
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
-    - name: Check catalog changes
-      uses: dorny/paths-filter@v3
-      id: catalog_changed
-      with:
-        filters: |
-          catalog:
-            - "${{ inputs.CATALOG_DIR_PATH }}/**"
+    # Build and push only if index.yaml have been generated
+    - name: Build and push catalog
+      id: catalog_build
+      if: ${{ hashFiles(format('{0}/**/index.yaml', inputs.CATALOG_DIR_PATH)) != '' }}
+      env:
+        VERSION: ${{ inputs.VERSION }}
+        GIT_TAG: ${{ inputs.TAG }}
+      shell: bash
+      run: make catalog-build catalog-push
 
+    # Only release when no PR tag is used
     - name: Push latest tag
-      if: ${{ inputs.TAG == '' && steps.catalog_changed.outputs.catalog == 'true' }}
+      if: ${{ inputs.TAG == '' && success() && steps.catalog_build.conclusion == 'success' }}
       uses: anothrNick/github-tag-action@1.71.0
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
