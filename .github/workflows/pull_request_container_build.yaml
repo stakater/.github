@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       PUSH_IMAGE:
-        description: Docker build parameters
+        description: Specifies whether to push image to repository
         default: true
         required: false
         type: boolean
