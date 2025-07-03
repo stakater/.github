@@ -17,6 +17,11 @@ on:
         default: ""
         required: false
         type: string
+      PUSH_IMAGE:
+        description: Specifies whether to push image to repository
+        default: true
+        required: false
+        type: boolean
       CONTAINER_REGISTRY_URL:
         description: "Container registry to publish docker image"
         required: true
@@ -80,6 +85,7 @@ jobs:
           buildkitd-flags: --debug
 
       - name: Login to Registry
+        if: ${{ inputs.PUSH_IMAGE }}
         uses: docker/login-action@v3
         with:
           registry: ${{ inputs.CONTAINER_REGISTRY_URL }}
@@ -93,7 +99,7 @@ jobs:
           build-contexts: ${{ inputs.DOCKER_BUILD_CONTEXTS }}
           file: ${{ inputs.DOCKER_FILE_PATH }}
           pull: true
-          push: true
+          push: ${{ inputs.PUSH_IMAGE }}
           build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
           cache-to: type=inline
           tags: |
@@ -104,6 +110,7 @@ jobs:
           secrets: ${{ secrets.DOCKER_SECRETS }}
 
       - name: Comment on PR
+        if: ${{ inputs.PUSH_IMAGE }}
         uses: mshick/add-pr-comment@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
