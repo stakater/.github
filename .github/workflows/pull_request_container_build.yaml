@@ -121,7 +121,7 @@ jobs:
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' && always() }} # Pick up events even if the job fails or is canceled.
+        if: ${{ env.SLACK_WEBHOOK_URL != '' && always() }} # Pick up events even if the job fails or is canceled.
         with:
           status: ${{ job.status }}
           fields: repo,author,action,eventName,ref,workflow
