@@ -35,7 +35,7 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
-        required: true
+        required: false
       DOCKER_SECRETS:
         description: Docker build secrets
         required: false
@@ -121,7 +121,7 @@ jobs:
 
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
-        if: always() # Pick up events even if the job fails or is canceled.
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' && always() }} # Pick up events even if the job fails or is canceled.
         with:
           status: ${{ job.status }}
           fields: repo,author,action,eventName,ref,workflow
