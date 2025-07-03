@@ -35,7 +35,7 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
-        required: true
+        required: false
       DOCKER_SECRETS:
         description: Docker build secrets
         required: false
