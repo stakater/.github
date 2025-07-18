@@ -18,7 +18,7 @@ on:
         type: string
       RH_CONTAINER_REGISTRY_URL:
         description: "Red Hat Container registry"
-        default: "registry.redhat.io"
+        default: ""
         required: false
         type: string
     secrets:
@@ -86,7 +86,7 @@ jobs:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Login to Red Hat Registry
-        if: ${{ inputs.RH_CONTAINER_REGISTRY_PASSWORD != '' }}
+        if: ${{ inputs.RH_CONTAINER_REGISTRY_URL != '' }}
         uses: docker/login-action@v3
         with:
           registry: ${{ inputs.RH_CONTAINER_REGISTRY_URL }}
