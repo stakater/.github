@@ -18,6 +18,7 @@ on:
         type: string
       RH_CONTAINER_REGISTRY_URL:
         description: "Red Hat Container registry"
+        default: ""
         required: false
         type: string
     secrets:
