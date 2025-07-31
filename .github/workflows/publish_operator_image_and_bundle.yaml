@@ -295,12 +295,12 @@ jobs:
         git merge upstream/main
         git push --set-upstream origin main
         git checkout -b mto-${{ needs.publish-image.outputs.latest_tag}}
-        mkdir operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}
-        cp -R ../bundle/manifests operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/manifests
-        cp -R ../bundle/metadata operators/tenant-operator/${{ needs.publish-image.outputs.latest_tag}}/metadata
+        mkdir operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
+        cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/manifests
+        cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/metadata
         git add .
-        git commit -am "Updated multi-tenant-operator to ${{ needs.publish-image.outputs.latest_tag}}"
-        git push --set-upstream origin mto-${{ needs.publish-image.outputs.latest_tag}}
+        git commit -am "Updated ${{ github.event.repository.name }} to ${{ needs.publish-image.outputs.latest_tag}}"
+        git push --set-upstream origin ${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}
 
     - name: Push changes
       uses: ad-m/github-push-action@master
@@ -356,7 +356,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Multi Tenant Operator container image successfully published to OperatorHub registry and a branch with operator bundle created in *<https://github.com/stakater/certified-operators/tree/mto-${{ needs.publish-image.outputs.latest_tag}}|stakater/certified-operators>*"
+                  "text": "${{ github.event.repository.name }} container image successfully published to OperatorHub registry and a branch with operator bundle created in *<https://github.com/stakater/certified-operators/tree/${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}|stakater/certified-operators>*"
                 }
               },
               {
@@ -374,7 +374,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "• Review changes made to bundle \n • Open a pull request in  *<https://github.com/redhat-openshift-ecosystem/certified-operators|redhat-openshift-ecosystem/certified-operators>* \n • Wait for the pipelines to be passed \n • Once pipeline passes, the latest version of Multi Tenant Operator will be available on Operator Cataog"
+                  "text": "• Review changes made to bundle \n • Open a pull request in  *<https://github.com/redhat-openshift-ecosystem/certified-operators|redhat-openshift-ecosystem/certified-operators>* \n • Wait for the pipelines to be passed \n • Once pipeline passes, the latest version of ${{ github.event.repository.name }} will be available on Operator Cataog"
                 }
               }
             ]
@@ -407,7 +407,7 @@ jobs:
           {
             attachments: [{
               color: 'danger',
-              text: `Multi Tenant Operator image publish and bundle creation part failed while OperatorHub certification`,
+              text: `${{ github.event.repository.name }} image publish and bundle creation part failed while OperatorHub certification`,
             }]
           }
       env:
