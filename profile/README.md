@@ -1,13 +1,14 @@
-# Welcome to Stakater
+## Welcome to Stakater
 
-[Stakater App Agility Platform (SAAP)](https://www.stakater.com/saap-kubernetes-openshift) enables organizations to adopt Kubernetes on your cloud of choice with significant return on investment. SAAP is based on OpenShift as the Kubernetes distribution and adds optional functionality together with incident management and operations to provide a fully managed Kubernetes platform.
+We build and maintain trusted open source tools for the Kubernetes community such as [Reloader](https://github.com/stakater/Reloader) (**9k+ stars**), used worldwide to automate workloads, improve deployment reliability, and reduce operational overhead.
 
-Stakater has contributed to the open source community since 2015.
+Since 2015, Stakater has been an active open source contributor, with projects adopted in production by startups and enterprises globally. We share our work openly, support the community, and provide expert Kubernetes consulting when organizations need help scaling.
 
-Stakater delivers multi-tenancy for OpenShift and Kubernetes through [Multi Tenant Operator](https://www.stakater.com/mto).
+💛 [Sponsor our open source work](https://github.com/sponsors/stakater)
 
-[Consultancy](https://www.stakater.com/kubernetes-consultancy) is available from certified Kubernetes professionals.
+In addition to our open source projects, we offer:
+- [Multi-Tenant Operator (MTO)](https://www.stakater.com/mto) – Enterprise-grade multi-tenancy for Kubernetes and OpenShift.
+- [Stakater Cloud](https://www.stakater.cloud) – Managed Kubernetes platform built on OpenShift.
+- Kubernetes Consulting – Expert services from certified Kubernetes professionals.
 
-See what roles we recruit for on our [careers page](https://www.stakater.com/careers).
-
-Explore our [Tekton Catalog](https://github.com/stakater-tekton-catalog), a collection of structured Tekton pipelines and tasks to accelerate your CI/CD workflows.
+🌐 Learn more at [stakater.com](https://www.stakater.com)  
