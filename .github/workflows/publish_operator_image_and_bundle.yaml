@@ -35,6 +35,11 @@ on:
       OPERATOR_BUNDLE_ID:
         description: Bundle ID from RedHat Connect Portal
         type: string
+      
+      CI_YAML_PATH:
+        description: Relative path to the ci.yaml file
+        default: "operators/${{ github.event.repository.name }}/ci.yaml"
+        type: string
 
       DOCKER_FILE_PATH:
         description: Dockerfile path
@@ -325,7 +330,7 @@ jobs:
           echo "Wrote cert_project_id: $OPERATOR_BUNDLE_ID to operators/${{ github.event.repository.name }}/ci.yaml"
         fi
 
-        mkdir -p operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
+        mkdir operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
         cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/manifests
         cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/metadata
         git add .
