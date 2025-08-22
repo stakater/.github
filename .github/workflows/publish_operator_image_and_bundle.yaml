@@ -303,7 +303,7 @@ jobs:
         git merge upstream/main
         git push --set-upstream origin main
         git checkout -b ${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}
-        mkdir operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
+        mkdir -p operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
         cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/manifests
         cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/metadata
         git add .
