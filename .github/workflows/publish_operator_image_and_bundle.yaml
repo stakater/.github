@@ -261,7 +261,15 @@ jobs:
         IMAGE_DIGEST: ${{ needs.publish-image.outputs.operatorhub_image_digest }}
       run: make update-operator-hub-image-digest
 
+    - name: Remove "v" from version
+      id: tag_without_v
+      run: |
+        TAG=${{ needs.publish-image.outputs.latest_tag}}
+        echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
+
     - name: Update Bundle
+      env:
+        VERSION: ${{ steps.tag_without_v.outputs.VERSION }}
       run: make bundle
 
     # Commit back changes
