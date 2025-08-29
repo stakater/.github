@@ -28,6 +28,12 @@ inputs:
     description: OPM CLI version to use
     default: "v1.50.0"
     required: false
+  
+  SKIP_CATALOG_RENDER: 
+    description: "Skip catalog rendering step"
+    default: false
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -51,7 +57,21 @@ runs:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
+
+    - name: Setup Helm Binary
+      uses: azure/setup-helm@v4
+      with:
+        version: "v3.12.3"
+
+    - name: Build and push Helm chart
+      run: make helm-chart-build helm-chart-push
+      shell: bash
+      env:
+        VERSION: ${{ inputs.VERSION }}
+        GIT_TAG: ${{ inputs.TAG }}
+
     - name: Render catalog index
+      if: ${{ !inputs.SKIP_CATALOG_RENDER }}
       run: make catalog-render
       shell: bash
       env:

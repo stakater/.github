@@ -49,6 +49,10 @@ on:
       CONTAINER_REGISTRY_PASSWORD:
         description: "Registry password to login"
         required: true
+      
+      STAKATER_AB_REPOS:
+        description: "Org secret"
+        required: false
 jobs:
   make-operator-pull-request:
     name: Operator Pull Request
@@ -60,16 +64,22 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Setup before Build
+        id: setup
+        run: make setup
+        env:
+          STAKATER_AB_REPOS: ${{ secrets.STAKATER_AB_REPOS }}
+
       - name: Verify code
         id: verify
-        uses: stakater/.github/.github/actions/operator/verify@main
+        uses: stakater/.github/.github/actions/operator/verify@shared-ci
         with:
           ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
           ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
 
       - name: Setup Version Tag
         id: tag
-        uses: stakater/.github/.github/actions/operator/tag@main
+        uses: stakater/.github/.github/actions/operator/tag@shared-ci
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
@@ -77,14 +87,14 @@ jobs:
 
       - name: Setup Docker
         id: docker
-        uses: stakater/.github/.github/actions/operator/docker@main
+        uses: stakater/.github/.github/actions/operator/docker@shared-ci
         env:
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
           CONTAINER_REGISTRY_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: stakater/.github/.github/actions/operator/build@main
+        uses: stakater/.github/.github/actions/operator/build@shared-ci
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
@@ -95,7 +105,7 @@ jobs:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
 
       - name: Notify
-        uses: stakater/.github/.github/actions/operator/notify@main
+        uses: stakater/.github/.github/actions/operator/notify@shared-ci
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}

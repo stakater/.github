@@ -1,0 +1,148 @@
+name: Container Build
+
+on:
+  workflow_call:
+    inputs:
+      DOCKER_FILE_PATH:
+        description: Docker file path
+        required: true
+        type: string
+      DOCKER_BUILD_CONTEXTS:
+        description: Docker build contexts
+        default: ""
+        required: false
+        type: string
+      BUILD_PARAMETERS:
+        description: Docker build parameters
+        default: ""
+        required: false
+        type: string
+      PUSH_IMAGE:
+        description: Specifies whether to push image to repository
+        default: true
+        required: false
+        type: boolean
+      CONTAINER_REGISTRY_URL:
+        description: "Container registry to publish docker image"
+        required: true
+        type: string
+      RH_CONTAINER_REGISTRY_URL:
+        description: "Red Hat Container registry"
+        default: ""
+        required: false
+        type: string
+    secrets:
+      CONTAINER_REGISTRY_USERNAME:
+        description: "Username to login to container registry"
+        required: true
+      CONTAINER_REGISTRY_PASSWORD:
+        description: "Password to login to container registry"
+        required: true
+      RH_CONTAINER_REGISTRY_USERNAME:
+        description: "Username to login to Red Hat container registry"
+        required: false
+      RH_CONTAINER_REGISTRY_PASSWORD:
+        description: "Password to login to Red Hat container registry"
+        required: false
+      SLACK_WEBHOOK_URL:
+        description: "Secret to send success/failure message to slack"
+        required: false
+      DOCKER_SECRETS:
+        description: Docker build secrets
+        required: false
+    outputs:
+      IMAGE_PATH:
+        description: "The path of the image created"
+        value: ${{ jobs.build.outputs.image_output }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_output: ${{ steps.set_output.outputs.IMAGE_PATH }}
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip-ci]')"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+          fetch-depth: 0 # otherwise, you will fail to push refs to dest repo
+          ref: ${{github.event.pull_request.head.sha}}
+
+      - name: Generate image repository path
+        id: image_repo_path
+        run: |
+          echo "IMAGE_REPOSITORY=$(echo ${{ inputs.CONTAINER_REGISTRY_URL }}/${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Generate image tag
+        id: generate_tag
+        run: |
+          sha=${{ github.event.pull_request.head.sha }}
+          tag="SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
+          echo "GIT_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
+
+      - name: Generate image path
+        id: set_output
+        run: echo "IMAGE_PATH=${{ steps.image_repo_path.outputs.IMAGE_REPOSITORY }}:${{ steps.generate_tag.outputs.GIT_TAG }}" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:v0.10.6
+          buildkitd-flags: --debug
+
+      - name: Login to Registry
+        if: ${{ inputs.PUSH_IMAGE }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.CONTAINER_REGISTRY_URL }}
+          username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Login to Red Hat Registry
+        if: ${{ inputs.RH_CONTAINER_REGISTRY_URL != '' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.RH_CONTAINER_REGISTRY_URL }}
+          username: ${{ secrets.RH_CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.RH_CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-contexts: ${{ inputs.DOCKER_BUILD_CONTEXTS }}
+          file: ${{ inputs.DOCKER_FILE_PATH }}
+          pull: true
+          push: ${{ inputs.PUSH_IMAGE }}
+          build-args: BUILD_PARAMETERS=${{ inputs.BUILD_PARAMETERS }}
+          cache-to: type=inline
+          tags: |
+            ${{ steps.set_output.outputs.IMAGE_PATH }}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          secrets: ${{ secrets.DOCKER_SECRETS }}
+
+      - name: Comment on PR
+        if: ${{ inputs.PUSH_IMAGE }}
+        uses: mshick/add-pr-comment@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ steps.set_output.outputs.IMAGE_PATH }}`'
+          message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
+          allow-repeats: true
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: ${{ env.SLACK_WEBHOOK_URL != '' && always() }} # Pick up events even if the job fails or is canceled.
+        with:
+          status: ${{ job.status }}
+          fields: repo,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
