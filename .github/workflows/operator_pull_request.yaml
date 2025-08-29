@@ -32,6 +32,11 @@ on:
         default: "v1.50.0"
         required: false
         type: string
+      
+      DIST:
+        description: "The kuberenetes distribution (openshift or kuberenetes)"
+        default: "openshift"
+        required: false
 
     secrets:
       SLACK_WEBHOOK_URL:
@@ -76,6 +81,7 @@ jobs:
         with:
           ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
           ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
+          DIST: ${{ inputs.DIST }}
 
       - name: Setup Version Tag
         id: tag

@@ -10,6 +10,10 @@ inputs:
     description: Run golang tests
     default: "true"
     required: false
+  DIST:
+    description: "The kuberenetes distribution (openshift or kuberenetes)"
+    default: "openshift"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -22,3 +26,5 @@ runs:
       if: ${{ inputs.ENABLE_UNIT_TESTS == 'true' }}
       shell: bash
       run: make test
+      env:
+        DIST: ${{ inputs.DIST }}
