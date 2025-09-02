@@ -30,7 +30,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       with:
-        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.VERSION }}${{ inputs.TAG }}`'
+        message-success: '@${{ github.actor }} Image is available for testing. `docker pull ${{ inputs.IMAGE_REPOSITORY }}:v${{ inputs.VERSION }}${{ inputs.TAG }}`'
         message-failure: '@${{ github.actor }} Yikes! You better fix it before anyone else finds out! [Build](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }}/checks) has Failed!'
         allow-repeats: true
 
