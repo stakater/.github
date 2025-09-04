@@ -60,8 +60,8 @@ on:
         description: "GitHub token with access to stakater-ab repos"
         required: false        
 jobs:
-  make-operator-pull-request:
-    name: Operator Pull Request
+  make-operator-push:
+    name: Operator Push
     runs-on: ubuntu-latest
 
     steps:
@@ -69,6 +69,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          
+      - name: Config private repo
+        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
+        run: |
+          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
       - name: Verify code
         id: verify
@@ -76,11 +81,6 @@ jobs:
         with:
           ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
           ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
-
-      - name: Config private repo
-        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
-        run: |
-          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
       - name: Setup Version Tag
         id: tag
