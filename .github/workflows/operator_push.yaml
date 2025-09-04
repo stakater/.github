@@ -33,8 +33,8 @@ on:
         required: false
         type: string
 
-      CONFIGURE_PRIVATE_REPO:
-        description: "Configure private repo"
+      ENABLE_STAKATER_AB_GIT_AUTH:
+        description: "Configure git to use stakater-ab private repos"
         required: false
         default: false
         type: boolean        
@@ -78,7 +78,7 @@ jobs:
           ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
 
       - name: Config private repo
-        if: ${{ inputs.CONFIGURE_PRIVATE_REPO }}
+        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
         run: |
           git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
