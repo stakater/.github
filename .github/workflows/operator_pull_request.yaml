@@ -126,6 +126,12 @@ jobs:
       - name: Setup Kind
         uses: helm/kind-action@v1
 
+      - name: Load operator image into kind
+        run: |
+          IMAGE="${{ steps.docker.outputs.IMAGE_REPOSITORY }}:${{ steps.tag.outputs.PR_TAG }}"
+          docker pull "$IMAGE" || true
+          kind load docker-image "$IMAGE"
+
       - name: Run E2E tests
         env:
           OPERATOR_IMAGE: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}:${{ steps.tag.outputs.PR_TAG }}
