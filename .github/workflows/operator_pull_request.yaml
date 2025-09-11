@@ -118,6 +118,19 @@ jobs:
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
           GIT_USER: ${{ inputs.GIT_USER }}
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Setup Kind
+        uses: helm/kind-action@v1
+
+      - name: Run E2E tests
+        env:
+          OPERATOR_IMAGE: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}:${{ steps.tag.outputs.PR_TAG }}
+        run: make test-e2e-pipeline
+
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
         with:
