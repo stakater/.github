@@ -121,12 +121,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
 
       - name: Setup Kind
         uses: helm/kind-action@v1
 
-      - name: Load operator image into kind (no pull)
+      - name: Build for kind
         shell: bash
         env:
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
@@ -134,29 +136,15 @@ jobs:
           PR_TAG: ${{ steps.tag.outputs.PR_TAG }}
         run: |
           set -euo pipefail
-
-          REPO="${IMAGE_REPOSITORY}"
-          VERSION="${TAG}"
-          SUFFIX="${PR_TAG:-}"
-
-          if [[ -n "$SUFFIX" ]]; then
-            IMAGE="${REPO}:${VERSION}${SUFFIX}"
+          if [[ -n "${PR_TAG:-}" ]]; then
+            IMAGE="${IMAGE_REPOSITORY}:${TAG}${PR_TAG}"
           else
-            IMAGE="${REPO}:${VERSION}"
+            IMAGE="${IMAGE_REPOSITORY}:${TAG}"
           fi
-
-          echo "Expecting local image: $IMAGE"
-          if docker image inspect "$IMAGE" >/dev/null 2>&1; then
-            echo "Found local image. Loading into KinD..."
-            kind load docker-image "$IMAGE"
-            echo "OPERATOR_IMAGE=$IMAGE" >> "$GITHUB_ENV"
-            exit 0
-          fi
-
-          echo "::error::Local image not found: $IMAGE"
-          echo "Your build step likely used buildx with --push (does not keep a local image)."
-          echo "Options: (a) modify build to also --load, or (b) add a docker save + kind load image-archive."
-          exit 1
+          echo "Rebuilding locally for KinD: $IMAGE"
+          docker build -t "$IMAGE" .
+          kind load docker-image "$IMAGE"
+          echo "OPERATOR_IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Run E2E tests
         env:
