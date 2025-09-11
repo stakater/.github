@@ -43,8 +43,6 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
-        GIT_USER: ${{ secrets.GIT_USER }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push
