@@ -37,7 +37,13 @@ on:
         description: "Configure git to use stakater-ab private repos"
         required: false
         default: false
-        type: boolean        
+        type: boolean         
+            
+      GIT_USER:
+        description: "Git user to push changes"
+        required: false
+        default: stakater-github-root
+        type: string
 
     secrets:
       SLACK_WEBHOOK_URL:
@@ -108,6 +114,8 @@ jobs:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
+          GIT_USER: ${{ inputs.GIT_USER }}
 
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main

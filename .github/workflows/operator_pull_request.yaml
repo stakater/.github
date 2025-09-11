@@ -38,6 +38,12 @@ on:
         required: false
         default: false
         type: boolean
+      
+      GIT_USER:
+        description: "Git user to push changes"
+        required: false
+        default: stakater-github-root
+        type: string
 
     secrets:
       SLACK_WEBHOOK_URL:
@@ -109,6 +115,8 @@ jobs:
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
+          GIT_USER: ${{ inputs.GIT_USER }}
 
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
