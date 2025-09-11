@@ -127,10 +127,31 @@ jobs:
         uses: helm/kind-action@v1
 
       - name: Load operator image into kind
+        env:
+          IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
+          TAG: ${{ steps.tag.outputs.TAG }}
+          PR_TAG: ${{ steps.tag.outputs.PR_TAG }}
         run: |
-          IMAGE="${{ steps.docker.outputs.IMAGE_REPOSITORY }}:${{ steps.tag.outputs.PR_TAG }}"
-          docker pull "$IMAGE" || true
+          set -euo pipefail
+          REPO="$IMAGE_REPOSITORY"
+          VERSION="$TAG"
+          SUFFIX="$PR_TAG"
+
+          # Build the expected tag: <version><pr_suffix> when suffix is present,
+          # otherwise just <version>.
+          if [[ -n "$SUFFIX" ]]; then
+            IMAGE="$REPO:$VERSION$SUFFIX"
+          else
+            IMAGE="$REPO:$VERSION"
+          fi
+
+          echo "Will load image: $IMAGE"
+          # Pull (if needed) and load into kind
+          docker pull "$IMAGE"
           kind load docker-image "$IMAGE"
+
+          # Export OPERATOR_IMAGE for the following make step
+          echo "OPERATOR_IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Run E2E tests
         env:
