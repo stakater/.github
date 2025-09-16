@@ -56,7 +56,11 @@ jobs:
 
       - name: Deploy Operator
         run: |
-          make deploy TAG=${{ steps.find_tag.outputs.PR_TAG }}
-      
+          make deploy
+        env:
+          TAG: ${{ steps.find_tag.outputs.PR_TAG }}
+          GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          GHCR_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+        
       - name: Run Operator E2E Tests
         run: make test-e2e
