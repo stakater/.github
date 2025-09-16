@@ -50,7 +50,7 @@ jobs:
 
       - name: Find Latest Image Tag
         id: find_tag
-        uses: ./.github/actions/operator/last-image
+        uses: stakater/.github/.github/actions/operator/last-image@fix/docker-build-private
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
