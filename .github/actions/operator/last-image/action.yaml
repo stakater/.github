@@ -5,6 +5,7 @@ runs:
   steps:
     - name: Fetch the latest Docker image comment and extract tag
       id: set_tag
+      shell: bash
       run: |
         PR_NUMBER=${{ github.event.pull_request.number || github.event.issue.number }}
         LATEST_COMMENT=$(gh api graphql -F owner='${{ github.repository_owner }}' -F repo='${{ github.event.repository.name }}' -F number=${PR_NUMBER} -f query='
