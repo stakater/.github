@@ -31,6 +31,10 @@ on:
         description: Certification project ID
         required: true
         type: string
+      
+      OPERATOR_BUNDLE_ID:
+        description: Bundle ID from RedHat Connect Portal
+        type: string
 
       DOCKER_FILE_PATH:
         description: Dockerfile path
@@ -303,6 +307,24 @@ jobs:
         git merge upstream/main
         git push --set-upstream origin main
         git checkout -b ${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}
+
+        if stat "operators/${{ github.event.repository.name }}/ci.yaml" >/dev/null 2>&1; then
+          echo "File exists: operators/${{ github.event.repository.name }}/ci.yaml"
+        else
+          mkdir -p operators/${{ github.event.repository.name }}
+          if [ -z "${OPERATOR_BUNDLE_ID:-}" ]; then
+            echo "Error: OPERATOR_BUNDLE_ID is not set" >&2
+            exit 1
+          fi
+
+          echo "File not found: operators/${{ github.event.repository.name }}/ci.yaml"
+          echo "cert_project_id: $OPERATOR_BUNDLE_ID" > "operators/${{ github.event.repository.name }}/ci.yaml" || {
+            echo "Error: Failed to write to operators/${{ github.event.repository.name }}/ci.yaml" >&2
+            exit 1
+          }
+          echo "Wrote cert_project_id: $OPERATOR_BUNDLE_ID to operators/${{ github.event.repository.name }}/ci.yaml"
+        fi
+
         mkdir operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
         cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/manifests
         cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/metadata
