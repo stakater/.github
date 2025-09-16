@@ -3,12 +3,6 @@ name: Operator PR Request
 on:
   workflow_call:
     inputs:
-      KIND_VERSION:
-        description: Kind version to use
-        default: "v0.29.0"
-        required: false
-        type: string
-      
       ENABLE_STAKATER_AB_GIT_AUTH:
         description: "Configure git to use stakater-ab private repos"
         required: false
@@ -53,11 +47,6 @@ jobs:
         if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
         run: |
           git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
-          
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1
-        with:
-          version: ${{ inputs.KIND_VERSION }}
 
       - name: Find Latest Image Tag
         id: find_tag
