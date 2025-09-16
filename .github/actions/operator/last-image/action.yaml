@@ -30,5 +30,3 @@ runs:
           echo "Extracted Docker image is: $dockerimage"
           echo "PR_TAG=${tag}" >> "$GITHUB_OUTPUT"
         fi
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
