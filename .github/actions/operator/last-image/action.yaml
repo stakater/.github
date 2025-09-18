@@ -1,0 +1,37 @@
+name: 'Fetch Last Image from PR Comments'
+description: 'Fetch the last image tag from PR comments'
+outputs:
+  PR_TAG:
+    description: "The tag for the workflow run"
+    value: ${{ steps.set_tag.outputs.PR_TAG }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Fetch the latest Docker image comment and extract tag
+      id: set_tag
+      shell: bash
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number || github.event.issue.number }}
+        LATEST_COMMENT=$(gh api graphql -F owner='${{ github.repository_owner }}' -F repo='${{ github.event.repository.name }}' -F number=${PR_NUMBER} -f query='
+          query($repo: String!, $owner: String!, $number: Int!) {
+            repository(owner: $owner, name: $repo) {
+              pullRequest(number: $number) {
+                comments(last: 100) {
+                  nodes {
+                    body
+                  }
+                }
+              }
+            }
+          }' --jq '.data.repository.pullRequest.comments.nodes | map(select(.body | test("docker pull"))) | .[-1].body')
+        if [ -z "$LATEST_COMMENT" ]; then
+          echo "No Docker image tag found in comments."
+        else
+          echo "Latest Docker image comment: $LATEST_COMMENT"
+          tag=$(echo $LATEST_COMMENT | sed -n 's/.*docker pull .*:\([^ `]*\).*/\1/p')
+          dockerimage=$(echo $LATEST_COMMENT | sed -n 's/.*`docker pull \(.*\)`.*/\1/p')
+
+          echo "Extracted Docker image tag: $tag"
+          echo "Extracted Docker image is: $dockerimage"
+          echo "PR_TAG=${tag}" >> "$GITHUB_OUTPUT"
+        fi
