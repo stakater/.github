@@ -4,6 +4,10 @@ outputs:
   PR_TAG:
     description: "The tag for the workflow run"
     value: ${{ steps.set_tag.outputs.PR_TAG }}
+  IMAGE: 
+    description: "The full image name with tag"
+    value: ${{ steps.set_tag.outputs.IMAGE }}
+    
 runs:
   using: 'composite'
   steps:
