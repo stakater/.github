@@ -34,4 +34,5 @@ runs:
           echo "Extracted Docker image tag: $tag"
           echo "Extracted Docker image is: $dockerimage"
           echo "PR_TAG=${tag}" >> "$GITHUB_OUTPUT"
+          echo "IMAGE=${dockerimage}" >> "$GITHUB_OUTPUT"
         fi
