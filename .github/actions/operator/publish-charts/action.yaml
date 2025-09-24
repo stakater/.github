@@ -49,9 +49,10 @@ runs:
     - name: Bump Chart Version to pr-<PR_NUMBER>
       run: |
         echo "Bumping chart version to: pr-${{ github.event.number }}"
-        make bump-chart-operator-on-pr VERSION="pr-${{ github.event.number }}"
+        make bump-chart-operator-on-pr
       shell: bash
       env:
+        VERSION: "pr-${{ github.event.number }}"
         OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
         CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
 
