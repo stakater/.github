@@ -69,6 +69,6 @@ runs:
         rm -rf ./packaged-chart
       shell: bash
       env:
-        VERSION: "pr-${{ github.event.number }}"
+        VERSION: "v0.0.0-pr-${{ github.event.number }}"
         OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
         CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
