@@ -1,0 +1,72 @@
+name: 'Publish Helm Chart on PR'
+description: 'Builds and publishes a Helm chart to GHCR public and private repos with pr-<PR_NUMBER> tag'
+author: 'Stakater'
+inputs:
+  OPERATOR_NAME:
+    description: 'Name of the operator: hibernation-operator'
+    required: true
+  GHCR_TOKEN:
+    description: 'GHCR PAT or GITHUB_TOKEN with write:packages'
+    required: true
+  GHCR_USERNAME:
+    description: 'GHCR username'
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: ./go.mod
+      env:
+        OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
+        CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
+
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ inputs.GHCR_USERNAME }}
+        password: ${{ inputs.GHCR_TOKEN }}
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: v3.12.3
+      env:
+        OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
+        CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
+
+    - name: Lint and Generate Helm Chart
+      run: make helm-lint helm-chart
+      shell: bash
+      env:
+        OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
+        CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
+
+    - name: Bump Chart Version to pr-<PR_NUMBER>
+      run: |
+        echo "Bumping chart version to: pr-${{ github.event.number }}"
+        make bump-chart-operator-on-pr VERSION="pr-${{ github.event.number }}"
+      shell: bash
+      env:
+        OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
+        CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
+
+    - name: Package and Push Helm Chart
+      run: |
+        helm dependency build "$CHART_PATH"
+        mkdir -p ./packaged-chart
+        helm package "$CHART_PATH" --destination ./packaged-chart
+
+        # Push to both public and private
+        helm push ./packaged-chart/*.tgz oci://ghcr.io/stakater/public/charts
+        helm push ./packaged-chart/*.tgz oci://ghcr.io/stakater/charts
+
+        rm -rf ./packaged-chart
+      shell: bash
+      env:
+        OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
+        CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
