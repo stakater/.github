@@ -50,7 +50,7 @@ runs:
 
     - name: Bump Chart Version to v0.0.0-pr-N
       run: |
-        echo "Bumping chart version to: pr-${{ github.event.number }}"
+        echo "Bumping chart version to: v0.0.0-pr-${{ github.event.number }}"
         make bump-chart-operator-on-pr
       shell: bash
       env:
