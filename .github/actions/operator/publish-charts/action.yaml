@@ -5,13 +5,15 @@ inputs:
   OPERATOR_NAME:
     description: 'Name of the operator: hibernation-operator'
     required: true
+  IMAGE_TAG:
+    description: 'Image tag to set in the chart'
+    required: true
   GHCR_TOKEN:
     description: 'GHCR PAT or GITHUB_TOKEN with write:packages'
     required: true
   GHCR_USERNAME:
     description: 'GHCR username'
-    required: false
-    default: ''
+    required: true
 
 runs:
   using: "composite"
@@ -49,9 +51,10 @@ runs:
     - name: Bump Chart Version to v0.0.0-pr-N
       run: |
         echo "Bumping chart version to: pr-${{ github.event.number }}"
-        make bump-chart-operator
+        make bump-chart-operator-on-pr
       shell: bash
       env:
+        PR_TAG: ${{ inputs.IMAGE_TAG }}
         VERSION: "v0.0.0-pr-${{ github.event.number }}"
         OPERATOR_NAME: ${{ inputs.OPERATOR_NAME }}
         CHART_PATH: ./helm-charts/${{ inputs.OPERATOR_NAME }}
