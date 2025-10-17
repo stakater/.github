@@ -126,10 +126,11 @@ jobs:
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
-        uses: stakater/.github/.github/actions/operator/chart-push@shared-kind-script
+        uses: stakater/.github/.github/actions/operator/chart-push@feat/shared-kind-script
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
+          CHART_REPOSITORY: "ghcr.io/stakater/charts"
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
