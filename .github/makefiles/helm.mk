@@ -1,6 +1,6 @@
 ##@ Helm
 
-HELM_CHART_NAME ?= mto-dependencies-operator
+HELM_CHART_NAME ?= chart
 HELM_CHART_DIR ?= charts/$(HELM_CHART_NAME)
 CHART_VERSION ?= $(VERSION)$(GIT_TAG)
 HELM_REGISTRY ?= ghcr.io/stakater/charts
