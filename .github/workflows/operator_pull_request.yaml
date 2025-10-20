@@ -97,7 +97,7 @@ jobs:
 
       - name: Setup Version Tag
         id: tag
-        uses: stakater/.github/.github/actions/operator/tag@main
+        uses: stakater/.github/.github/actions/operator/tag@feat/shared-kind-script
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
@@ -112,7 +112,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: stakater/.github/.github/actions/operator/build@main
+        uses: stakater/.github/.github/actions/operator/build@feat/shared-kind-script
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
