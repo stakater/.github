@@ -44,4 +44,4 @@ runs:
         version="${{ steps.generate.outputs.new_tag }}"
         echo "TAG=${version#v}" >> $GITHUB_OUTPUT
         echo "PR_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
-        echo "PUSH_TAG=${sha:0:8}" >> $GITHUB_OUTPUT
+        echo "PUSH_TAG=-${sha:0:8}" >> $GITHUB_OUTPUT
