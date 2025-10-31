@@ -105,7 +105,7 @@ jobs:
 
       - name: Setup Version Tag
         id: tag
-        uses: stakater/.github/.github/actions/operator/tag@main
+        uses: stakater/.github/.github/actions/operator/tag@push-helm
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
         env:
