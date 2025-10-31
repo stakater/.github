@@ -11,12 +11,12 @@ outputs:
     value: ${{ steps.tag.outputs.TAG }}
 
   PR_TAG:
-    description: "The PR tag for the workflow run"
+    description: "The PR tag for the workflow run. This can be appended to the version for images built for PRs."
     value: ${{ steps.tag.outputs.PR_TAG }}
 
   PUSH_TAG:
-    description: "The PR tag for the workflow run"
-    value: ${{ steps.tag.outputs.PR_TAG }}
+    description: "The commit hash for the commit. This can be appended to the version for pushing images."
+    value: ${{ steps.tag.outputs.PUSH_TAG }}
 
 runs:
   using: "composite"
