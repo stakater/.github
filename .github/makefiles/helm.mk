@@ -2,7 +2,7 @@
 
 HELM_CHART_NAME ?= 
 HELM_CHART_DIR ?= charts/$(HELM_CHART_NAME)
-CHART_VERSION ?= $(VERSION)$(GIT_TAG)
+CHART_VERSION ?= $(VERSION)-$(GIT_TAG)
 HELM_REGISTRY ?= ghcr.io/stakater/charts
 LOCALBIN ?= bin
 # Prefer a globally installed helm if available, otherwise use the local bin path
