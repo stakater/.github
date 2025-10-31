@@ -8,14 +8,12 @@ LOCALBIN ?= bin
 # Prefer a globally installed helm if available, otherwise use the local bin path
 # This resolves to the global helm path when present, else to ./bin/helm
 HELM := $(shell command -v helm 2>/dev/null || echo $(LOCALBIN)/helm)
-KUSTOMIZE ?= $(shell command -v helm 2>/dev/null || echo $(LOCALBIN)/helm)
 
 ##@ Required variables check
 .PHONY: check-helm-reqs
 check-helm-reqs:
 	@missing=0; \
 	if [ -z "$(HELM_CHART_NAME)" ]; then echo "ERROR: HELM_CHART_NAME is not set"; missing=1; fi; \
-	# if [ -z "$(HELM_REGISTRY)" ]; then echo "ERROR: HELM_REGISTRY is not set"; missing=1; fi; \
 	if [ -z "$(CHART_VERSION)" ]; then echo "ERROR: CHART_VERSION is not set"; missing=1; fi; \
 	if [ -z "$(GIT_USER)" ]; then echo "ERROR: GIT_USER is not set"; missing=1; fi; \
 	if [ -z "$(GIT_TOKEN)" ]; then echo "ERROR: GIT_TOKEN is not set"; missing=1; fi; \
