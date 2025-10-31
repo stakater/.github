@@ -37,7 +37,13 @@ on:
         description: "Configure git to use stakater-ab private repos"
         required: false
         default: false
-        type: boolean         
+        type: boolean 
+
+      ENABLE_CHART_PUSH:
+        description: "Enable pushing helm charts to chart repo"
+        required: false
+        default: false
+        type: boolean              
             
       GIT_USER:
         description: "Git user to push changes"
@@ -108,6 +114,7 @@ jobs:
         uses: stakater/.github/.github/actions/operator/build@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
+          TAG: ${{ steps.tag.outputs.PUSH_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
@@ -116,6 +123,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
           GIT_USER: ${{ inputs.GIT_USER }}
+
+      - name: Publish Helm Chart
+        if: ${{ inputs.ENABLE_CHART_PUSH }}
+        uses: stakater/.github/.github/actions/operator/chart-push@main
+        with:
+          VERSION: ${{ steps.tag.outputs.TAG }}
+          TAG: ${{ steps.tag.outputs.PUSH_TAG }}
+          CHART_REPOSITORY: "ghcr.io/stakater/charts"
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
