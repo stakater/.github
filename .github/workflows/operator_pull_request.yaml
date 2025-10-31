@@ -141,8 +141,8 @@ jobs:
           CHART_REPOSITORY: "ghcr.io/stakater/charts"
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
-          GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
-          GIT_USER: ${{ inputs.GIT_USER }}
+          GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Notify
         uses: stakater/.github/.github/actions/operator/notify@main
