@@ -2,7 +2,7 @@
 
 HELM_CHART_NAME ?= 
 HELM_CHART_DIR ?= charts/$(HELM_CHART_NAME)
-CHART_VERSION ?= $(VERSION)-$(GIT_TAG)
+CHART_VERSION ?= $(VERSION)$(GIT_TAG)
 HELM_REGISTRY ?= ghcr.io/stakater/charts
 LOCALBIN ?= bin
 # Prefer a globally installed helm if available, otherwise use the local bin path
@@ -17,6 +17,7 @@ check-helm-reqs:
 	if [ -z "$(CHART_VERSION)" ]; then echo "ERROR: CHART_VERSION is not set"; missing=1; fi; \
 	if [ -z "$(GIT_USER)" ]; then echo "ERROR: GIT_USER is not set"; missing=1; fi; \
 	if [ -z "$(GIT_TOKEN)" ]; then echo "ERROR: GIT_TOKEN is not set"; missing=1; fi; \
+	if [ -z "$(IMG)" ]; then echo "ERROR: IMG is not set"; missing=1; fi; \
 	if [ "$${missing}" -ne 0 ]; then echo "One or more required variables are missing. Aborting."; exit 1; fi
 
 .PHONY: install-helm
@@ -39,7 +40,8 @@ helmify: ## Generate Helm chart from Kustomize manifests
 	@echo "Generating Helm chart from Kustomize manifests..."
 	@rm -rf $(HELM_CHART_DIR)
 	@mkdir -p $(HELM_CHART_DIR)
-	$(KUSTOMIZE) build config/default | helmify -crd-dir $(HELM_CHART_DIR)
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | helmify -crd-dir -image-pull-secrets $(HELM_CHART_DIR)
 	@echo "✓ Helm chart generated at $(HELM_CHART_DIR)"
 
 .PHONY: helm-lint
