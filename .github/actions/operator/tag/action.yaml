@@ -13,6 +13,11 @@ outputs:
   PR_TAG:
     description: "The PR tag for the workflow run"
     value: ${{ steps.tag.outputs.PR_TAG }}
+
+  PUSH_TAG:
+    description: "The PR tag for the workflow run"
+    value: ${{ steps.tag.outputs.PR_TAG }}
+
 runs:
   using: "composite"
   steps:
