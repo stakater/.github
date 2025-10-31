@@ -41,7 +41,7 @@ helmify: ## Generate Helm chart from Kustomize manifests
 	@rm -rf $(HELM_CHART_DIR)
 	@mkdir -p $(HELM_CHART_DIR)
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | helmify -crd-dir -image-pull-secrets $(HELM_CHART_DIR)
+	$(KUSTOMIZE) build config/default | yq 'del(.. | .imagePullSecrets?)' | helmify -crd-dir -image-pull-secrets $(HELM_CHART_DIR)
 	@echo "✓ Helm chart generated at $(HELM_CHART_DIR)"
 
 .PHONY: helm-lint
