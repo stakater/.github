@@ -116,6 +116,10 @@ jobs:
       - name: Build & Push
         run: |
           make build docker-build docker-push
+        env:
+          VERSION: ${{ steps.tag.outputs.TAG }}
+          GIT_TAG: ${{ steps.tag.outputs.PR_TAG }}
+          IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
