@@ -1,0 +1,141 @@
+name: Operator PR Request
+
+on:
+  workflow_call:
+    inputs:
+      ENABLE_LINTING:
+        description: Run golangci-lint
+        default: true
+        required: false
+        type: boolean
+
+      ENABLE_UNIT_TESTS:
+        description: Run golang tests
+        default: true
+        required: false
+        type: boolean
+
+      RELEASE_BRANCH:
+        description: Release branch to push changes
+        required: false
+        type: string
+        default: main
+
+      GO_VERSION:
+        description: Go version to use
+        required: false
+        default: "1.25.0"
+        type: string
+
+      ENABLE_STAKATER_AB_GIT_AUTH:
+        description: "Configure git to use stakater-ab private repos"
+        required: false
+        default: false
+        type: boolean
+      
+      ENABLE_CHART_PUSH:
+        description: "Enable pushing helm charts to chart repo"
+        required: false
+        default: false
+        type: boolean
+      
+      GIT_USER:
+        description: "Git user to push changes"
+        required: false
+        default: stakater-github-root
+        type: string
+
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: "Secret to send success/failure message to slack"
+        required: true
+
+      CONTAINER_REGISTRY_URL:
+        description: "Registry URL to publish image"
+        required: true
+
+      CONTAINER_REGISTRY_USERNAME:
+        description: "Registry username to login"
+        required: true
+
+      CONTAINER_REGISTRY_PASSWORD:
+        description: "Registry password to login"
+        required: true
+
+      STAKATER_AB_REPOS:
+        description: "GitHub token with access to stakater-ab repos"
+        required: false
+      
+jobs:
+  make-gateway-pull-request:
+    name: Gateway Pull Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Show Go Version
+        run: go version
+
+      - name: Configure private repo
+        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
+        run: |
+          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
+
+      - name: Verify code
+        id: verify
+        uses: stakater/.github/.github/actions/operator/verify@main
+        with:
+          ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
+          ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
+
+      - name: Setup Version Tag
+        id: tag
+        uses: stakater/.github/.github/actions/operator/tag@main
+        with:
+          RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Docker
+        id: docker
+        uses: stakater/.github/.github/actions/operator/docker@main
+        env:
+          CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
+          CONTAINER_REGISTRY_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Build & Push
+        run: |
+          make build docker-build docker-push
+
+      - name: Publish Helm Chart
+        if: ${{ inputs.ENABLE_CHART_PUSH }}
+        uses: stakater/.github/.github/actions/operator/chart-push@main
+        with:
+          VERSION: ${{ steps.tag.outputs.TAG }}
+          TAG: ${{ steps.tag.outputs.PR_TAG }}
+          CHART_REPOSITORY: "ghcr.io/stakater/charts"
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Notify
+        uses: stakater/.github/.github/actions/operator/notify@main
+        with:
+          VERSION: ${{ steps.tag.outputs.TAG }}
+          TAG: ${{ steps.tag.outputs.PR_TAG }}
+          IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
