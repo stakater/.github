@@ -5,6 +5,8 @@ inputs:
     description: Release branch to push changes
     required: false
     default: main
+
+  
 outputs:
   TAG:
     description: "The tag for the workflow run"
@@ -39,7 +41,7 @@ runs:
       id: tag
       shell: bash
       run: |
-        sha=${{ github.event.pull_request.head.sha }}
+        sha=$GITHUB_SHA
         tag="-SNAPSHOT-PR-${{ github.event.pull_request.number }}-${sha:0:8}"
         version="${{ steps.generate.outputs.new_tag }}"
         echo "TAG=${version#v}" >> $GITHUB_OUTPUT
