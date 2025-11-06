@@ -87,6 +87,14 @@ jobs:
         run: |
           git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.0'
+
+      - name: Show Go Version
+        run: go version
+        
       - name: Verify code
         id: verify
         uses: stakater/.github/.github/actions/operator/verify@main
