@@ -114,12 +114,16 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        run: |
-          make build docker-build docker-push
-        env:
+        uses: stakater/.github/.github/actions/operator/build@shared_gateway_workflow
+        with:
           VERSION: ${{ steps.tag.outputs.TAG }}
-          GIT_TAG: ${{ steps.tag.outputs.PR_TAG }}
+          TAG: ${{ steps.tag.outputs.PR_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
+          IS_OPERATOR: false
+        env:
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
+          GIT_USER: ${{ inputs.GIT_USER }}
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}

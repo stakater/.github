@@ -28,6 +28,12 @@ inputs:
     description: OPM CLI version to use
     default: "v1.50.0"
     required: false
+  
+  IS_OPERATOR:
+    description: "Is Operator build"
+    required: false
+    default: true
+
 runs:
   using: "composite"
   steps:
@@ -37,14 +43,20 @@ runs:
         source: "github"
         opm: ${{ inputs.OPM_VERSION }}
 
+    - name: Generate Manifests
+      if: ${{ inputs.IS_OPERATOR }}
+      run: make manifests
+      shell: bash
+
     - name: Build and push controller
-      run: make manifests build docker-build docker-push
+      run: make build docker-build docker-push
       shell: bash
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
 
     - name: Build and push bundle
+      if: ${{ inputs.IS_OPERATOR }}
       run: make bundle bundle-build bundle-push
       shell: bash
       env:
@@ -52,6 +64,7 @@ runs:
         GIT_TAG: ${{ inputs.TAG }}
 
     - name: Render catalog index
+      if: ${{ inputs.IS_OPERATOR }}
       run: make catalog-render
       shell: bash
       env:
@@ -61,7 +74,7 @@ runs:
     # Build and push only if index.yaml have been generated
     - name: Build and push catalog
       id: catalog_build
-      if: ${{ hashFiles(format('{0}/**/index.yaml', inputs.CATALOG_DIR_PATH)) != '' }}
+      if: ${{ inputs.IS_OPERATOR && hashFiles(format('{0}/**/index.yaml', inputs.CATALOG_DIR_PATH)) != '' }}
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
