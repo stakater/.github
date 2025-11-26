@@ -54,7 +54,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push
@@ -70,7 +70,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}/public 
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}/public 
         
 
     - name: Render catalog index

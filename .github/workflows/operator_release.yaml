@@ -170,8 +170,8 @@ jobs:
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       
-      - name: Publish Helm Chart
-        if: ${{ inputs.ENABLE_CHART_PUSH == 'true' }}
+      - name: Publish Public Helm Chart
+        if: ${{ inputs.ENABLE_CHART_PUSH }}
         uses: stakater/.github/.github/actions/operator/chart-push@feat/release-workflow
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
