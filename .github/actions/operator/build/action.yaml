@@ -61,7 +61,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        IMAGE_REPOSITORY: ${{ inputs.IMAGE_REPOSITORY }}
+        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}
 
     
     - name: Push to Public registry
