@@ -142,6 +142,7 @@ jobs:
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
           PUSH_TO_PUBLIC_REGISTRY: true
+          CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
