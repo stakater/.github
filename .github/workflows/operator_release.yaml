@@ -163,7 +163,7 @@ jobs:
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
-          HELM_REGISTRY: "oci://ghcr.io/stakater/charts"
+          HELM_REGISTRY: "ghcr.io/stakater/charts"
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
@@ -175,7 +175,7 @@ jobs:
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
-          HELM_REGISTRY: "oci://ghcr.io/stakater/public/charts"
+          HELM_REGISTRY: "ghcr.io/stakater/public/charts"
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}

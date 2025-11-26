@@ -28,10 +28,16 @@ inputs:
     description: OPM CLI version to use
     default: "v1.50.0"
     required: false
+
   PUSH_TO_PUBLIC_REGISTRY:
     description: "Push images to public registry"
     required: false
     default: false
+  
+  CONTAINER_REGISTRY_URL: 
+    description: "Base registry URL"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -55,6 +61,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
+        IMAGE_REPOSITORY: ${{ inputs.IMAGE_REPOSITORY }}
 
     
     - name: Push to Public registry
@@ -64,7 +71,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        DOCKER_REPO_BASE: ${{ inputs.DOCKER_REPO_BASE }}/public
+        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}/public 
         
 
     - name: Render catalog index
