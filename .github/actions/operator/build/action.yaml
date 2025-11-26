@@ -54,6 +54,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
+        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push
@@ -61,8 +62,6 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
-        IMAGE_REPOSITORY: ${{ inputs.CONTAINER_REGISTRY_URL }}
-
     
     - name: Push to Public registry
       if: ${{ inputs.PUSH_TO_PUBLIC_REGISTRY == 'true' }}
