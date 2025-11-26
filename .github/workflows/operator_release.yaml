@@ -120,7 +120,7 @@ jobs:
         uses: stakater/.github/.github/actions/operator/tag@feat/release-workflow
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
-          # AUTO_GENERATED: true
+          AUTO_GENERATED: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
