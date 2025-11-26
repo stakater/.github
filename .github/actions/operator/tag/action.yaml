@@ -9,7 +9,7 @@ inputs:
   AUTO_GENERATED:
     description: Automatically bumps to next version
     required: false
-    default: "false"
+    default: "true"
   
 outputs:
   TAG:
