@@ -50,6 +50,12 @@ on:
         required: false
         default: stakater-github-root
         type: string
+      
+      GO_VERSION:
+        description: Go version to setup
+        required: false
+        default: 1.25.0
+        type: string
 
     secrets:
       SLACK_WEBHOOK_URL:
@@ -86,7 +92,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.0'
+          go-version: ${{ inputs.GO_VERSION }}
 
       - name: Show Go Version
         run: go version
