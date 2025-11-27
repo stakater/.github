@@ -51,6 +51,12 @@ on:
         default: stakater-github-root
         type: string
 
+      GO_VERSION:
+        description: Go version to setup
+        required: false
+        default: 1.25.0
+        type: string
+
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -90,7 +96,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.25.0'
+          go-version: ${{ inputs.GO_VERSION }}
 
       - name: Show Go Version
         run: go version
@@ -122,7 +128,6 @@ jobs:
         uses: stakater/.github/.github/actions/operator/build@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
-          TAG: ${{ steps.tag.outputs.PUSH_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
