@@ -81,12 +81,14 @@ jobs:
   make-operator-push:
     name: Operator Push
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          fetch-depth: '0'
           
       - name: Config private repo
         if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
@@ -149,12 +151,10 @@ jobs:
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
-      - name: Notify
-        uses: stakater/.github/.github/actions/operator/notify@main
-        with:
-          VERSION: ${{ steps.tag.outputs.TAG }}
-          IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
+      - name: Push Release Tag
+        uses: anothrNick/github-tag-action@1.75.0
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_PREFIX: v
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: ${{ inputs.RELEASE_BRANCH }}
