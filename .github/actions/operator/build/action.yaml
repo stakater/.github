@@ -28,6 +28,17 @@ inputs:
     description: OPM CLI version to use
     default: "v1.50.0"
     required: false
+
+  PUSH_TO_PUBLIC_REGISTRY:
+    description: "Push images to public registry"
+    required: false
+    default: false
+  
+  CONTAINER_REGISTRY_URL: 
+    description: "Base registry URL"
+    required: false
+    default: ""
+
 runs:
   using: "composite"
   steps:
@@ -43,6 +54,7 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push
@@ -50,6 +62,16 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
+    
+    - name: Push to Public registry
+      if: ${{ inputs.PUSH_TO_PUBLIC_REGISTRY == 'true' }}
+      run: make docker-build docker-push bundle-build bundle-push
+      shell: bash
+      env:
+        VERSION: ${{ inputs.VERSION }}
+        GIT_TAG: ${{ inputs.TAG }}
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}/public 
+        
 
     - name: Render catalog index
       run: make catalog-render
