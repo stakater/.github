@@ -37,14 +37,14 @@ on:
         description: "Configure git to use stakater-ab private repos"
         required: false
         default: false
-        type: boolean 
+        type: boolean
 
       ENABLE_CHART_PUSH:
         description: "Enable pushing helm charts to chart repo"
         required: false
         default: false
-        type: boolean              
-            
+        type: boolean
+
       GIT_USER:
         description: "Git user to push changes"
         required: false
@@ -55,6 +55,12 @@ on:
         description: Go version to setup
         required: false
         default: 1.25.0
+        type: string
+
+      RUNS_ON:
+        description: "Configure runs-on for the job"
+        required: false
+        default: "ubuntu-latest"
         type: string
 
     secrets:
@@ -76,18 +82,18 @@ on:
 
       STAKATER_AB_REPOS:
         description: "GitHub token with access to stakater-ab repos"
-        required: false        
+        required: false
 jobs:
   make-operator-push:
     name: Operator Push
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNS_ON }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
-          
+
       - name: Config private repo
         if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
         run: |
@@ -100,7 +106,7 @@ jobs:
 
       - name: Show Go Version
         run: go version
-        
+
       - name: Verify code
         id: verify
         uses: stakater/.github/.github/actions/operator/verify@main

@@ -38,23 +38,29 @@ on:
         required: false
         default: false
         type: boolean
-      
+
       ENABLE_CHART_PUSH:
         description: "Enable pushing helm charts to chart repo"
         required: false
         default: false
         type: boolean
-      
+
       GIT_USER:
         description: "Git user to push changes"
         required: false
         default: stakater-github-root
         type: string
-      
+
       GO_VERSION:
         description: Go version to setup
         required: false
         default: 1.25.0
+        type: string
+
+      RUNS_ON:
+        description: "Configure runs-on for the job"
+        required: false
+        default: "ubuntu-latest"
         type: string
 
     secrets:
@@ -77,11 +83,11 @@ on:
       STAKATER_AB_REPOS:
         description: "GitHub token with access to stakater-ab repos"
         required: false
-      
+
 jobs:
   make-operator-pull-request:
     name: Operator Pull Request
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNS_ON }}
 
     steps:
       - name: Checkout repository

@@ -9,6 +9,12 @@ on:
         default: false
         type: boolean
 
+      RUNS_ON:
+        description: "Configure runs-on for the job"
+        required: false
+        default: "ubuntu-latest"
+        type: string
+
     secrets:
       CONTAINER_REGISTRY_URL:
         description: "Registry URL to publish image"
@@ -28,7 +34,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNS_ON }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
