@@ -123,7 +123,7 @@ jobs:
 
       - name: Setup Version Tag
         id: tag
-        uses: stakater/.github/.github/actions/operator/tag@feat/release-workflow
+        uses: stakater/.github/.github/actions/operator/tag@main
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
           AUTO_GENERATED: false
@@ -139,7 +139,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: stakater/.github/.github/actions/operator/build@feat/release-workflow
+        uses: stakater/.github/.github/actions/operator/build@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
@@ -166,7 +166,7 @@ jobs:
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
-        uses: stakater/.github/.github/actions/operator/chart-push@feat/release-workflow
+        uses: stakater/.github/.github/actions/operator/chart-push@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
@@ -178,7 +178,7 @@ jobs:
       
       - name: Publish Public Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
-        uses: stakater/.github/.github/actions/operator/chart-push@feat/release-workflow
+        uses: stakater/.github/.github/actions/operator/chart-push@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
