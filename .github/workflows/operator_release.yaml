@@ -39,7 +39,7 @@ on:
         required: false
         type: string
 
-      GO_LANG_VERSION:
+      GO_VERSION:
         description: Go lang version to use
         default: 1.25.0
         required: false
@@ -61,6 +61,12 @@ on:
         description: "Git user to push changes"
         required: false
         default: stakater-github-root
+        type: string
+      
+      RUNS_ON:
+        description: "Runner environment for the job"
+        required: false
+        default: ubuntu-latest
         type: string
 
     secrets:
@@ -88,7 +94,7 @@ on:
 jobs:
   release-operator:
     name: Release Operator
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.RUNS_ON }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -103,7 +109,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ inputs.GO_LANG_VERSION }}
+          go-version: ${{ inputs.GO_VERSION }}
 
       - name: Show Go Version
         run: go version
