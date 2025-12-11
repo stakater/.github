@@ -10,7 +10,7 @@ inputs:
     required: false
     default: ""
 
-  CHART_REPOSITORY:
+  HELM_REGISTRY:
     description: "The chart repository to push the chart"
     required: true
 
@@ -37,3 +37,4 @@ runs:
       env:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
+        HELM_REGISTRY: ${{ inputs.HELM_REGISTRY }}
