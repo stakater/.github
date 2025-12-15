@@ -139,6 +139,7 @@ jobs:
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
+          CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
@@ -150,7 +151,7 @@ jobs:
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PR_TAG }}
-          CHART_REPOSITORY: "ghcr.io/stakater/charts"
+          HELM_REGISTRY: "ghcr.io/stakater/charts"
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
