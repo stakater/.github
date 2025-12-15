@@ -13,6 +13,11 @@ inputs:
   HELM_REGISTRY:
     description: "The chart repository to push the chart"
     required: true
+  
+  CONTAINER_REGISTRY_URL: 
+    description: "Base registry URL"
+    required: false
+    default: ""
 
   RELEASE_BRANCH:
     description: Release branch to push changes
@@ -38,3 +43,4 @@ runs:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
         HELM_REGISTRY: ${{ inputs.HELM_REGISTRY }}
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
