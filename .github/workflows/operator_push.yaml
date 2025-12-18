@@ -63,6 +63,12 @@ on:
         default: "ubuntu-latest"
         type: string
 
+      TAGGING_STRATEGY:
+        type: string
+        description: "Tagging strategy to use for the operator"
+        required: false
+        default: "catalog" # This can be set to 'commit-sha' to append commit hash to generated version
+
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -119,6 +125,7 @@ jobs:
         uses: stakater/.github/.github/actions/operator/tag@main
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
+          TAGGING_STRATEGY: ${{ inputs.TAGGING_STRATEGY }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -134,6 +141,7 @@ jobs:
         uses: stakater/.github/.github/actions/operator/build@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
+          TAG: ${{ steps.tag.outputs.PUSH_TAG }}
           IMAGE_REPOSITORY: ${{ steps.docker.outputs.IMAGE_REPOSITORY }}
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
@@ -150,7 +158,8 @@ jobs:
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
-          HELM_REGISTRY: "ghcr.io/stakater/charts"
+          HELM_REGISTRY: "${{ secrets.CONTAINER_REGISTRY_URL }}/charts"
+          CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}/public
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
