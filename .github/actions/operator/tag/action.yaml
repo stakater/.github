@@ -62,7 +62,7 @@ runs:
           echo "TAG=${version#v}" >> $GITHUB_OUTPUT
           echo "PR_TAG=$(echo ${tag})" >> $GITHUB_OUTPUT
           if [ "${{ inputs.TAGGING_STRATEGY }}" = "commit-sha" ]; then
-            echo "PUSH_TAG=${sha:0:8}" >> $GITHUB_OUTPUT
+            echo "PUSH_TAG=-${sha:0:8}" >> $GITHUB_OUTPUT
           else
             echo "PUSH_TAG=" >> $GITHUB_OUTPUT
           fi
