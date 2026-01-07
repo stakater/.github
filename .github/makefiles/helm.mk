@@ -9,6 +9,9 @@ LOCALBIN ?= bin
 # This resolves to the global helm path when present, else to ./bin/helm
 HELM := $(shell command -v helm 2>/dev/null || echo $(LOCALBIN)/helm)
 
+# Any extra args to pass to helmify
+HELMIFY_ARGS ?=
+
 ##@ Required variables check
 .PHONY: check-helm-reqs
 check-helm-reqs:
@@ -33,6 +36,7 @@ install-helm:
 		curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | HELM_INSTALL_DIR=$(LOCALBIN) bash; \
 	fi
 
+
 .PHONY: helmify
 helmify: ## Generate Helm chart from Kustomize manifests
 	@echo "Checking for helmify..."
@@ -41,7 +45,7 @@ helmify: ## Generate Helm chart from Kustomize manifests
 	@rm -rf $(HELM_CHART_DIR)
 	@mkdir -p $(HELM_CHART_DIR)
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | yq 'del(.. | .imagePullSecrets?)' | helmify -crd-dir -image-pull-secrets $(HELM_CHART_DIR)
+	$(KUSTOMIZE) build config/default | yq 'del(.. | .imagePullSecrets?)' | helmify -crd-dir -image-pull-secrets $(HELMIFY_ARGS) $(HELM_CHART_DIR)
 	@echo "✓ Helm chart generated at $(HELM_CHART_DIR)"
 
 .PHONY: helm-lint
