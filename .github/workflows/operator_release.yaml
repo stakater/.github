@@ -69,6 +69,12 @@ on:
         default: ubuntu-latest
         type: string
 
+      AUTOGENERATE_TAG:
+        description: "Autogenerate the next SemVer tag"
+        required: false
+        default: false
+        type: boolean
+    
     secrets:
       SLACK_WEBHOOK_URL:
         description: "Secret to send success/failure message to slack"
@@ -126,7 +132,7 @@ jobs:
         uses: stakater/.github/.github/actions/operator/tag@main
         with:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
-          AUTO_GENERATED: false
+          AUTO_GENERATED: ${{ inputs.AUTOGENERATE_TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
