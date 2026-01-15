@@ -72,3 +72,12 @@ jobs:
         run: make test-e2e
         env:
           IMG: ${{ steps.find_tag.outputs.IMAGE }}
+          
+      - name: Upload pod logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-pod-logs-${{ github.run_id }}
+          path: ./e2e-logs/
+          retention-days: 7
+          if-no-files-found: ignore
