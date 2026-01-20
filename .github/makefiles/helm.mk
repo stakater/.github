@@ -12,6 +12,10 @@ HELM := $(shell command -v helm 2>/dev/null || echo $(LOCALBIN)/helm)
 # Any extra args to pass to helmify
 HELMIFY_ARGS ?=
 
+# Optional postprocessing script to run after helmify
+# Projects can override this to run custom scripts
+HELMIFY_POSTPROCESS ?=
+
 ##@ Required variables check
 .PHONY: check-helm-reqs
 check-helm-reqs:
@@ -47,6 +51,11 @@ helmify: ## Generate Helm chart from Kustomize manifests
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | yq 'del(.. | .imagePullSecrets?)' | helmify -crd-dir -image-pull-secrets $(HELMIFY_ARGS) $(HELM_CHART_DIR)
 	@echo "✓ Helm chart generated at $(HELM_CHART_DIR)"
+	@if [ -n "$(HELMIFY_POSTPROCESS)" ]; then \
+		echo "Running postprocessing script..."; \
+		$(HELMIFY_POSTPROCESS); \
+		echo "✓ Postprocessing completed"; \
+	fi
 
 .PHONY: helm-lint
 helm-lint: helmify install-helm ## Lint the Helm chart
