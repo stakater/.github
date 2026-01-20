@@ -53,7 +53,7 @@ helmify: ## Generate Helm chart from Kustomize manifests
 	@echo "✓ Helm chart generated at $(HELM_CHART_DIR)"
 	@if [ -n "$(HELMIFY_POSTPROCESS)" ]; then \
 		echo "Running postprocessing script..."; \
-		$(HELMIFY_POSTPROCESS); \
+		"$(HELMIFY_POSTPROCESS)"; \
 		echo "✓ Postprocessing completed"; \
 	fi
 
