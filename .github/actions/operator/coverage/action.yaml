@@ -62,14 +62,14 @@ runs:
 
     - name: post coverage report
       uses: thollander/actions-comment-pull-request@v3
-      if: steps.PR.outputs.pr_found == 'true'
+      if: steps.PR.outputs.pr_found == 'true' && steps.coverage.outputs.report != ''
       with:
         github-token: ${{ env.GITHUB_TOKEN }}
         comment-tag: coverage-report
         message: |-
           coverage report:
           ```
-          ${{ steps.coverage.outputs.report }}
+          ${{ fromJSON(steps.coverage.outputs.report) }}
           ```
 
     - name: "finally check coverage"
