@@ -21,6 +21,19 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Check if coverage profile file exists
+      shell: bash
+      run: |
+          if [ ! -f ${{ inputs.COVERAGE_PROFILE }} ]; then
+              echo -e "\033[0;31mCoverage profile file does not exist\033[0m"
+              echo -e "Make sure to run either:"
+              echo -e "  \033[0;34mgo test ./... -coverprofile=${{ inputs.COVERAGE_PROFILE }} -covermode=atomic -coverpkg=./...\033[0m"
+              echo -e "  \033[0;34mmake test\033[0m"
+              echo ""
+              echo -e "\033[0;31mBefore running this action\033[0m"
+              exit 1
+          fi
+
     - name: download artifact
       id: download-breakdown
       uses: dawidd6/action-download-artifact@v11

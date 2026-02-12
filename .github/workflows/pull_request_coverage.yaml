@@ -3,6 +3,18 @@ name: Pull Request Coverage
 on:
   workflow_call:
     inputs:
+      ENABLE_LINTING:
+        description: Run golangci-lint
+        default: true
+        required: false
+        type: boolean
+
+      ENABLE_UNIT_TESTS:
+        description: Run golang tests
+        default: true
+        required: false
+        type: boolean
+
       TARGET_BRANCH:
         description: Target branch for the pull request
         required: false
@@ -66,6 +78,13 @@ jobs:
 
       - name: Show Go Version
         run: go version
+
+      - name: Verify code
+        id: verify
+        uses: stakater/.github/.github/actions/operator/verify@main
+        with:
+          ENABLE_LINTING: ${{ inputs.ENABLE_LINTING }}
+          ENABLE_UNIT_TESTS: ${{ inputs.ENABLE_UNIT_TESTS }}
 
       - name: Check Code Coverage
         id: coverage
