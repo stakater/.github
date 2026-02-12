@@ -1,0 +1,78 @@
+name: Pull Request Coverage
+
+on:
+  workflow_call:
+    inputs:
+      TARGET_BRANCH:
+        description: Target branch for the pull request
+        required: false
+        type: string
+        default: main
+
+      ENABLE_STAKATER_AB_GIT_AUTH:
+        description: "Configure git to use stakater-ab private repos"
+        required: false
+        default: false
+        type: boolean
+
+      GO_VERSION:
+        description: Go version to setup
+        required: false
+        default: 1.25.0
+        type: string
+
+      GO_TEST_COVERAGE_CONFIG:
+        description: Go test coverage config file
+        required: false
+        default: ./.github/.testcoverage.yml
+        type: string
+
+      GO_TEST_COVERAGE_PROFILE:
+        description: Go test coverage profile file
+        required: false
+        default: cover.out
+        type: string
+
+      RUNS_ON:
+        description: "Configure runs-on for the job"
+        required: false
+        default: "ubuntu-latest"
+        type: string
+
+    secrets:
+      STAKATER_AB_REPOS:
+        description: "GitHub token with access to stakater-ab repos"
+        required: false
+jobs:
+  make-code-coverage:
+    name: Code Coverage
+    runs-on: ${{ inputs.RUNS_ON }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Config private repo
+        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
+        run: |
+          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.GO_VERSION }}
+
+      - name: Show Go Version
+        run: go version
+
+      - name: Check Code Coverage
+        id: coverage
+        uses: stakater/.github/.github/actions/operator/coverage@main
+        with:
+          TARGET_BRANCH: ${{ inputs.TARGET_BRANCH }}
+          COVERAGE_CONFIG: ${{ inputs.GO_TEST_COVERAGE_CONFIG }}
+          COVERAGE_PROFILE: ${{ inputs.GO_TEST_COVERAGE_PROFILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
