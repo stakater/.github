@@ -141,6 +141,17 @@ jobs:
         source: "github"
         preflight: ${{ inputs.PREFLIGHT_VERSION }}
 
+    - name: Determine preflight certification flag
+      id: preflight_flag
+      run: |
+        VERSION="${{ inputs.PREFLIGHT_VERSION }}"
+        VERSION="${VERSION#v}"
+        if [ "$(printf '%s\n' "1.15.1" "$VERSION" | sort -V | head -n1)" = "1.15.1" ]; then
+          echo "cert_flag=--certification-component-id" >> $GITHUB_OUTPUT
+        else
+          echo "cert_flag=--certification-project-id" >> $GITHUB_OUTPUT
+        fi
+
     - name: Get current tag
       id: current_tag
       run: |
@@ -198,7 +209,7 @@ jobs:
     - name: Submit Preflight test
       run: |
         rm -r ./artifacts
-        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit --certification-project-id ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
+        preflight check container ${{ env.IMAGE_REPOSITORY }}:${{ steps.current_tag.outputs.tag }} --pyxis-api-token ${{ secrets.PYXIS_API_TOKEN }} --submit ${{ steps.preflight_flag.outputs.cert_flag }} ${{ inputs.CERTIFICATION_PROJECT_ID }} --docker-config ~/.docker/config.json
         rm -r ./artifacts
 
     # Build and push "latest" tag
