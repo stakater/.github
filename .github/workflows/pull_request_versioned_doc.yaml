@@ -18,7 +18,7 @@ jobs:
       current_branch: ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
     steps:
       - name: Checkout source files
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
