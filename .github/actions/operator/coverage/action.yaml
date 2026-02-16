@@ -36,7 +36,7 @@ runs:
 
     - name: download artifact
       id: download-breakdown
-      uses: dawidd6/action-download-artifact@v11
+      uses: dawidd6/action-download-artifact@v14
       with:
         branch: ${{ inputs.TARGET_BRANCH }}
         workflow_conclusion: success
