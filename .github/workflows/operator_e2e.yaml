@@ -75,7 +75,7 @@ jobs:
           
       - name: Upload pod logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: e2e-pod-logs-${{ github.run_id }}
           path: ./e2e-logs/
