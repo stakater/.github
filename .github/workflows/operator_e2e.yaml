@@ -72,7 +72,8 @@ jobs:
         run: make test-e2e
         env:
           IMG: ${{ steps.find_tag.outputs.IMAGE }}
-          
+          GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
       - name: Upload pod logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
