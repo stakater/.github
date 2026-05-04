@@ -319,7 +319,9 @@ jobs:
         git fetch upstream
         git merge upstream/main
         git push --set-upstream origin main
-        git checkout -b ${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}
+        LATEST_TAG="${{ needs.publish-image.outputs.latest_tag}}"
+        TAG_NO_V="${LATEST_TAG#v}"
+        git checkout -b ${{ github.event.repository.name }}-${LATEST_TAG}
 
         if stat "operators/${{ github.event.repository.name }}/ci.yaml" >/dev/null 2>&1; then
           echo "File exists: operators/${{ github.event.repository.name }}/ci.yaml"
@@ -338,12 +340,12 @@ jobs:
           echo "Wrote cert_project_id: $OPERATOR_BUNDLE_ID to operators/${{ github.event.repository.name }}/ci.yaml"
         fi
 
-        mkdir operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}
-        cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/manifests
-        cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${{ needs.publish-image.outputs.latest_tag}}/metadata
+        mkdir operators/${{ github.event.repository.name }}/${TAG_NO_V}
+        cp -R ../bundle/manifests operators/${{ github.event.repository.name }}/${TAG_NO_V}/manifests
+        cp -R ../bundle/metadata operators/${{ github.event.repository.name }}/${TAG_NO_V}/metadata
         git add .
-        git commit -am "Updated ${{ github.event.repository.name }} to ${{ needs.publish-image.outputs.latest_tag}}"
-        git push --set-upstream origin ${{ github.event.repository.name }}-${{ needs.publish-image.outputs.latest_tag}}
+        git commit -am "Updated ${{ github.event.repository.name }} to ${TAG_NO_V}"
+        git push --set-upstream origin ${{ github.event.repository.name }}-${LATEST_TAG}
 
     - name: Push changes
       uses: ad-m/github-push-action@master
