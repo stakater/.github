@@ -98,30 +98,19 @@ main() {
 
   log_info "Running govulncheck (scan=symbol, pattern=${SCAN_PATTERN}) in $(pwd)"
 
-  # govulncheck exits 3 when vulns are present; treat as expected.
+  # With -format=json, govulncheck always exits 0 regardless of findings;
+  # the caller is expected to consume the JSON stream. So any non-zero exit
+  # here is a real tool error (invalid module, network failure, etc.).
   set +e
   govulncheck -format=json -scan symbol "$SCAN_PATTERN" > "$json_file" 2> "$err_file"
   local gvc_exit=$?
   set -e
 
-  case "$gvc_exit" in
-    0)
-      log_success "No vulnerabilities found."
-      {
-        echo "## govulncheck"
-        echo
-        echo "No vulnerabilities found."
-      } >> "$summary"
-      exit 0
-      ;;
-    3)
-      ;;
-    *)
-      log_error "govulncheck failed with exit code $gvc_exit"
-      cat "$err_file" >&2
-      exit 1
-      ;;
-  esac
+  if [ "$gvc_exit" -ne 0 ]; then
+    log_error "govulncheck failed with exit code $gvc_exit"
+    cat "$err_file" >&2
+    exit 1
+  fi
 
   # Load ignore list: strip '#' comments and blank lines; trim whitespace.
   local ignore_list=""
@@ -169,6 +158,18 @@ main() {
     echo "--- first 50 lines of raw output ---" >&2
     head -n 50 "$json_file" >&2
     exit 1
+  fi
+
+  local num_findings
+  num_findings=$(printf '%s' "$rows_json" | jq 'length')
+  if [ "$num_findings" -eq 0 ]; then
+    log_success "No vulnerabilities found."
+    {
+      echo "## govulncheck"
+      echo
+      echo "No vulnerabilities found."
+    } >> "$summary"
+    exit 0
   fi
 
   local table_head table_body
