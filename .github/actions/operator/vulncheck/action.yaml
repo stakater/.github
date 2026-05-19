@@ -1,0 +1,40 @@
+name: "Vulncheck"
+description: "Run govulncheck against a Go module, with ignore-list and called-only filtering. Caller must set up Go (e.g. actions/setup-go) before invoking."
+inputs:
+  GOVULNCHECK_VERSION:
+    description: "Version passed to 'go install golang.org/x/vuln/cmd/govulncheck@<version>'"
+    required: false
+    default: "latest"
+
+  IGNORE_FILE:
+    description: "Path (relative to WORKING_DIRECTORY) to a plain-text file listing advisory IDs to ignore. One ID per line; '#' starts a comment. Missing file is treated as empty list. See govulncheck-ignore-example next to this action for the format."
+    required: false
+    default: ".govulncheck-ignore"
+
+  CALLED_ONLY:
+    description: "When 'true', only called vulnerabilities fail the build. Imported-only findings are listed in the summary as informational."
+    required: false
+    default: "true"
+
+  WORKING_DIRECTORY:
+    description: "Directory to cd into before running govulncheck. Should contain go.mod."
+    required: false
+    default: "."
+
+  SCAN_PATTERN:
+    description: "Package pattern passed to govulncheck."
+    required: false
+    default: "./..."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run govulncheck
+      shell: bash
+      env:
+        GOVULNCHECK_VERSION: ${{ inputs.GOVULNCHECK_VERSION }}
+        IGNORE_FILE: ${{ inputs.IGNORE_FILE }}
+        CALLED_ONLY: ${{ inputs.CALLED_ONLY }}
+        WORKING_DIRECTORY: ${{ inputs.WORKING_DIRECTORY }}
+        SCAN_PATTERN: ${{ inputs.SCAN_PATTERN }}
+      run: bash "${{ github.action_path }}/../../../scripts/run-govulncheck.sh"
