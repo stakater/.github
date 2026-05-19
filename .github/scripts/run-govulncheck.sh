@@ -15,6 +15,8 @@ set -uo pipefail
 #   GOVULNCHECK_VERSION   govulncheck version for 'go install' (default: latest)
 #   IGNORE_FILE           Path to ignore file, relative to WORKING_DIRECTORY
 #                         (default: .govulncheck-ignore). Missing file is OK.
+#                         See .github/actions/operator/vulncheck/govulncheck-ignore-example
+#                         for the expected format.
 #   CALLED_ONLY           When "true", only called vulnerabilities fail the
 #                         script. Imported-only findings appear in the summary
 #                         but don't cause a non-zero exit. (default: true)

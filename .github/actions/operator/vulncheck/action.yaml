@@ -7,7 +7,7 @@ inputs:
     default: "latest"
 
   IGNORE_FILE:
-    description: "Path (relative to WORKING_DIRECTORY) to a plain-text file listing advisory IDs to ignore. One ID per line; '#' starts a comment. Missing file is treated as empty list."
+    description: "Path (relative to WORKING_DIRECTORY) to a plain-text file listing advisory IDs to ignore. One ID per line; '#' starts a comment. Missing file is treated as empty list. See govulncheck-ignore-example next to this action for the format."
     required: false
     default: ".govulncheck-ignore"
 
