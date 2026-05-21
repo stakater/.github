@@ -64,6 +64,19 @@ helm-lint: helmify install-helm ## Lint the Helm chart
 	$(HELM) lint $(HELM_CHART_DIR) --strict
 	@echo "✓ Helm chart linting passed!"
 
+HELM_UNITTEST_VERSION ?= 0.6.3
+
+.PHONY: helm-test
+helm-test: helmify install-helm ## Run helm unittest tests against the generated chart
+	@installed=$$($(HELM) plugin list 2>/dev/null | awk '$$1 == "unittest" { print $$2 }'); 
+	if [ "$$installed" != "$(HELM_UNITTEST_VERSION)" ]; then
+		echo "Installing helm unittest plugin v$(HELM_UNITTEST_VERSION) (found: $${installed:-none})..."; 
+		[ -n "$$installed" ] && $(HELM) plugin uninstall unittest >/dev/null 2>&1 || true; 
+		$(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION);
+	fi
+	$(HELM) unittest $(HELM_CHART_DIR)
+	@echo "✓ Helm chart tests passed!"
+
 .PHONY: helm-package
 helm-package: helm-lint check-helm-reqs ## Package the Helm chart
 	@echo "Packaging Helm chart..."
