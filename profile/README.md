@@ -1,6 +1,6 @@
 ## Welcome to Stakater
 
-We build and maintain trusted open source tools for the Kubernetes community such as [Reloader](https://github.com/stakater/Reloader) (**9k+ stars**), used worldwide to automate workloads, improve deployment reliability, and reduce operational overhead.
+We build and maintain trusted open source tools for the Kubernetes community such as [Reloader](https://github.com/stakater/Reloader) (**10k+ stars**), used worldwide to automate workloads, improve deployment reliability, and reduce operational overhead.
 
 Since 2015, Stakater has been an active open source contributor, with projects adopted in production by startups and enterprises globally. We share our work openly, support the community, and provide expert Kubernetes consulting when organizations need help scaling.
 
