@@ -25,7 +25,7 @@ runs:
         buildkitd-flags: --debug
 
     - name: Login to Registry
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ${{ env.CONTAINER_REGISTRY_URL }}
         username: ${{ env.CONTAINER_REGISTRY_USERNAME }}
