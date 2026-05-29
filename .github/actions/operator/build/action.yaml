@@ -65,9 +65,12 @@ runs:
       if: ${{ inputs.LATEST_TAG_NAME != '' }}
       shell: bash
       run: |
-        docker buildx imagetools create \
-          -t ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.LATEST_TAG_NAME }} \
-          ${{ inputs.IMAGE_REPOSITORY }}:v${{ inputs.VERSION }}${{ inputs.TAG }}
+        # Tag and push the same locally-built image so the rolling tag shares the
+        # exact digest of the versioned tag (no manifest-list re-wrapping).
+        docker tag \
+          ${{ inputs.IMAGE_REPOSITORY }}:v${{ inputs.VERSION }}${{ inputs.TAG }} \
+          ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.LATEST_TAG_NAME }}
+        docker push ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.LATEST_TAG_NAME }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push
