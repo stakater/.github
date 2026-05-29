@@ -28,6 +28,11 @@ inputs:
     description: OPM CLI version to use
     default: "v1.50.0"
     required: false
+
+  LATEST_TAG_NAME:
+    description: "Optional rolling tag re-pointed at the freshly pushed chart (e.g. develop, latest). Leave empty to disable."
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -44,3 +49,18 @@ runs:
         GIT_TAG: ${{ inputs.TAG }}
         HELM_REGISTRY: ${{ inputs.HELM_REGISTRY }}
         DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
+
+    - name: Set up ORAS
+      if: ${{ inputs.LATEST_TAG_NAME != '' }}
+      uses: oras-project/setup-oras@v1
+
+    - name: Re-point rolling tag at chart
+      if: ${{ inputs.LATEST_TAG_NAME != '' }}
+      shell: bash
+      run: |
+        # Add the rolling tag to the existing chart manifest so it shares the
+        # exact digest of the versioned tag (oras tag does not re-wrap).
+        CHART=$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]')
+        oras tag \
+          ${{ inputs.HELM_REGISTRY }}/$CHART:${{ inputs.VERSION }}${{ inputs.TAG }} \
+          ${{ inputs.LATEST_TAG_NAME }}
