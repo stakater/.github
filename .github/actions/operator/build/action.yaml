@@ -33,6 +33,11 @@ inputs:
     description: "Push images to public registry"
     required: false
     default: false
+
+  LATEST_TAG_NAME:
+    description: "Optional rolling tag re-pointed at the freshly pushed controller image (e.g. develop, latest). Leave empty to disable."
+    required: false
+    default: ""
   
   CONTAINER_REGISTRY_URL: 
     description: "Base registry URL"
@@ -55,6 +60,17 @@ runs:
         VERSION: ${{ inputs.VERSION }}
         GIT_TAG: ${{ inputs.TAG }}
         DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
+
+    - name: Re-point rolling tag at controller image
+      if: ${{ inputs.LATEST_TAG_NAME != '' }}
+      shell: bash
+      run: |
+        # Tag and push the same locally-built image so the rolling tag shares the
+        # exact digest of the versioned tag (no manifest-list re-wrapping).
+        docker tag \
+          ${{ inputs.IMAGE_REPOSITORY }}:v${{ inputs.VERSION }}${{ inputs.TAG }} \
+          ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.LATEST_TAG_NAME }}
+        docker push ${{ inputs.IMAGE_REPOSITORY }}:${{ inputs.LATEST_TAG_NAME }}
 
     - name: Build and push bundle
       run: make bundle bundle-build bundle-push

@@ -74,6 +74,12 @@ on:
         required: false
         default: false
         type: boolean
+
+      LATEST_TAG_NAME:
+        description: "Optional rolling tag re-pointed at the freshly pushed controller image (e.g. latest). Leave empty to disable."
+        required: false
+        default: ""
+        type: string
     
     secrets:
       SLACK_WEBHOOK_URL:
@@ -145,7 +151,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: stakater/.github/.github/actions/operator/build@main
+        uses: stakater/.github/.github/actions/operator/build@feat/latest-tags
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
@@ -155,6 +161,7 @@ jobs:
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
           PUSH_TO_PUBLIC_REGISTRY: true
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
+          LATEST_TAG_NAME: ${{ inputs.LATEST_TAG_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_TOKEN: ${{ secrets.STAKATER_AB_REPOS }}
