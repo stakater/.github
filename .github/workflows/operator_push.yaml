@@ -144,7 +144,7 @@ jobs:
           CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build & Push
-        uses: stakater/.github/.github/actions/operator/build@feat/latest-tags
+        uses: stakater/.github/.github/actions/operator/build@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
@@ -161,7 +161,7 @@ jobs:
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
-        uses: stakater/.github/.github/actions/operator/chart-push@feat/latest-tags
+        uses: stakater/.github/.github/actions/operator/chart-push@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
