@@ -179,7 +179,7 @@ jobs:
 
       - name: Publish Helm Chart
         if: ${{ inputs.ENABLE_CHART_PUSH }}
-        uses: stakater/.github/.github/actions/operator/chart-push@main
+        uses: stakater/.github/.github/actions/operator/chart-push@feat/latest-tags
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
