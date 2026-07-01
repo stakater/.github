@@ -1,0 +1,70 @@
+name: Generate CRD API Reference
+description: >
+  Generate a CRD API-reference markdown page from an operator's Go types using
+  crd-ref-docs. Repo-agnostic; bundles its own rendering templates.
+
+inputs:
+  operator_repo:
+    description: "Git URL of the operator repository to read Go types from."
+    required: true
+  operator_ref:
+    description: "Operator git ref (branch/tag) to generate from."
+    required: false
+    default: "main"
+  api_path:
+    description: "Path within the operator repo to the API types (e.g. api/group/v1alpha1, or api/ for all groups)."
+    required: true
+  config_file:
+    description: "Path (in the caller checkout) to crd-ref-docs.yaml."
+    required: false
+    default: "crd-ref-docs.yaml"
+  output_file:
+    description: "Path (in the caller checkout) to write the generated markdown."
+    required: false
+    default: "content/reference/api.md"
+  crd_ref_docs_version:
+    description: "crd-ref-docs version to install."
+    required: false
+    default: "v0.3.0"
+  go_version:
+    description: "Go version used to build crd-ref-docs."
+    required: false
+    default: "1.26"
+  working_directory:
+    description: "Directory of the caller checkout that config_file/output_file are relative to."
+    required: false
+    default: "."
+
+outputs:
+  output_file:
+    description: "Absolute path to the generated markdown file."
+    value: ${{ steps.generate.outputs.output_file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: ${{ inputs.go_version }}
+
+    - name: Generate API reference
+      id: generate
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      env:
+        OPERATOR_REPO: ${{ inputs.operator_repo }}
+        OPERATOR_REF: ${{ inputs.operator_ref }}
+        API_PATH: ${{ inputs.api_path }}
+        CRD_REF_DOCS_VERSION: ${{ inputs.crd_ref_docs_version }}
+        CONFIG_FILE_REL: ${{ inputs.config_file }}
+        OUTPUT_FILE_REL: ${{ inputs.output_file }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        export CONFIG_FILE="$(pwd)/$CONFIG_FILE_REL"
+        export OUTPUT_FILE="$(pwd)/$OUTPUT_FILE_REL"
+        export WORK_DIR="${RUNNER_TEMP:-$(pwd)/.work}/crd-ref"
+        # Script + templates live beside the action.
+        "$ACTION_PATH/generate-api-reference.sh"
+        echo "output_file=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
