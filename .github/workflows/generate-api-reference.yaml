@@ -33,9 +33,17 @@ on:
         type: string
         required: false
         default: "chore/regenerate-api-reference"
+      ENABLE_STAKATER_AB_GIT_AUTH:
+        description: "Configure git to clone stakater-ab private repos"
+        required: false
+        default: false
+        type: boolean
     secrets:
       PR_TOKEN:
         required: true
+      STAKATER_AB_REPOS:
+        description: "GitHub token with access to stakater-ab repos"
+        required: false
 
 jobs:
   generate:
@@ -43,6 +51,11 @@ jobs:
     steps:
       - name: Checkout caller repo
         uses: actions/checkout@v5
+
+      - name: Configure private repo
+        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
+        run: |
+          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
       - name: Generate CRD API reference
         uses: stakater/.github/.github/actions/generate-crd-api-reference@main

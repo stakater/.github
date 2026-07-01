@@ -45,11 +45,33 @@ jobs:
 
 ## Private operator repos
 
-The action clones `operator_repo` over HTTPS. For **private** operators, pass a
-token-authenticated URL or pre-configure a git credential, e.g.:
+The action clones `operator_repo` over HTTPS. For **private** `stakater-ab`
+operators, set `ENABLE_STAKATER_AB_GIT_AUTH: true` and pass the
+`STAKATER_AB_REPOS` token secret — the reusable workflow then configures git
+(`url.insteadOf`) so the plain `https://github.com/stakater-ab/<operator>.git`
+URL clones with auth. This matches the pattern used by the operator
+build/push workflows.
 
 ```yaml
-operator_repo: https://x-access-token:${{ secrets.OPERATOR_TOKEN }}@github.com/stakater-ab/<operator>.git
+jobs:
+  generate:
+    uses: stakater/.github/.github/workflows/generate-api-reference.yaml@main
+    with:
+      operator_repo: https://github.com/stakater-ab/<operator>.git
+      api_path: api/<group>/<version>
+      ENABLE_STAKATER_AB_GIT_AUTH: true
+    secrets:
+      PR_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+      STAKATER_AB_REPOS: ${{ secrets.STAKATER_AB_REPOS }}
+```
+
+When calling the **action** directly (not via the reusable workflow), add the
+equivalent git-config step before the action in your own workflow:
+
+```yaml
+- name: Configure private repo
+  run: |
+    git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 ```
 
 ## Notes
