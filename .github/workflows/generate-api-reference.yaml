@@ -58,7 +58,7 @@ jobs:
           git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
       - name: Generate CRD API reference
-        uses: stakater/.github/.github/actions/generate-crd-api-reference@main
+        uses: stakater/.github/.github/actions/generate-crd-api-reference@feat/api-gen-workflow
         with:
           operator_repo: ${{ inputs.operator_repo }}
           operator_ref: ${{ inputs.operator_ref }}
