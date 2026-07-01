@@ -1,23 +1,33 @@
 name: Generate API Reference
 
+# Runs in the OPERATOR repo's context: reads the operator's own Go types locally
+# (no cross-repo clone of private operator code), renders the API reference, and
+# opens a PR in the docs repo. The only cross-repo access needed is WRITE to the
+# docs repo, via DOCS_TOKEN.
+
 on:
   workflow_call:
     inputs:
-      operator_repo:
+      docs_repo:
+        description: "Docs repository to write the reference into (owner/name)."
         type: string
         required: true
-      operator_ref:
+      docs_ref:
+        description: "Docs repo ref to base the PR on."
         type: string
         required: false
         default: "main"
-      api_path:
+      source_path:
+        description: "Path in THIS (operator) repo to the API types (e.g. api/group/v1alpha1)."
         type: string
         required: true
       config_file:
+        description: "Path in THIS (operator) repo to crd-ref-docs.yaml."
         type: string
         required: false
         default: "crd-ref-docs.yaml"
       output_file:
+        description: "Path in the DOCS repo to write the generated markdown."
         type: string
         required: false
         default: "content/reference/api.md"
@@ -33,47 +43,42 @@ on:
         type: string
         required: false
         default: "chore/regenerate-api-reference"
-      ENABLE_STAKATER_AB_GIT_AUTH:
-        description: "Configure git to clone stakater-ab private repos"
-        required: false
-        default: false
-        type: boolean
     secrets:
-      PR_TOKEN:
+      DOCS_TOKEN:
+        description: "Token with write access to the docs repo (checkout + PR)."
         required: true
-      STAKATER_AB_REPOS:
-        description: "GitHub token with access to stakater-ab repos"
-        required: false
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout caller repo
+      - name: Checkout operator repo
         uses: actions/checkout@v5
 
-      - name: Configure private repo
-        if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
-        run: |
-          git config --global url."https://${{ secrets.STAKATER_AB_REPOS }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
+      - name: Checkout docs repo
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.docs_repo }}
+          ref: ${{ inputs.docs_ref }}
+          token: ${{ secrets.DOCS_TOKEN }}
+          path: docs-repo
 
       - name: Generate CRD API reference
         uses: stakater/.github/.github/actions/generate-crd-api-reference@feat/api-gen-workflow
         with:
-          operator_repo: ${{ inputs.operator_repo }}
-          operator_ref: ${{ inputs.operator_ref }}
-          api_path: ${{ inputs.api_path }}
+          source_path: ${{ inputs.source_path }}
           config_file: ${{ inputs.config_file }}
-          output_file: ${{ inputs.output_file }}
+          output_file: docs-repo/${{ inputs.output_file }}
           crd_ref_docs_version: ${{ inputs.crd_ref_docs_version }}
           go_version: ${{ inputs.go_version }}
 
       - name: Create Pull Request
+        working-directory: docs-repo
         env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN }}
+          GH_TOKEN: ${{ secrets.DOCS_TOKEN }}
           OUTPUT_FILE: ${{ inputs.output_file }}
-          OPERATOR_REPO: ${{ inputs.operator_repo }}
-          OPERATOR_REF: ${{ inputs.operator_ref }}
+          OPERATOR_REPO: ${{ github.repository }}
+          OPERATOR_REF: ${{ github.ref_name }}
           PR_BRANCH: ${{ inputs.pr_branch }}
         run: |
           set -euo pipefail
@@ -86,7 +91,7 @@ jobs:
           git config user.email "github-bot@stakater.com"
           git checkout -B "$PR_BRANCH"
           git add "$OUTPUT_FILE"
-          git commit -m "docs: regenerate API reference ($OPERATOR_REF)"
+          git commit -m "docs: regenerate API reference from $OPERATOR_REPO@$OPERATOR_REF"
           git push --force-with-lease origin "$PR_BRANCH"
           # Create the PR only if one isn't already open for this branch.
           if [ -z "$(gh pr list --head "$PR_BRANCH" --state open --json number -q '.[].number')" ]; then
