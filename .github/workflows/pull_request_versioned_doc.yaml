@@ -2,10 +2,19 @@ name: Pull request for versioned doc
 
 on:
   workflow_call:
+    inputs:
+      PRE_BUILD_HOOK:
+        description: "Command/script to run after theme prep, before mike deploy"
+        required: false
+        type: string
+        default: ""
     secrets:
       GH_TOKEN:
         description: "GitHub token"
         required: true
+      PRE_BUILD_TOKEN:
+        description: "Secret to be used with PRE_BUILD_HOOK"
+        required: false
     outputs:
       CURRENT_BRANCH:
         description: "Current head ref as a url friendly variable"
@@ -51,6 +60,11 @@ jobs:
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
 
+      - name: Run pre-build hook
+        if: inputs.PRE_BUILD_HOOK != ''
+        run: ${{ inputs.PRE_BUILD_HOOK }}
+        env:
+          PRE_BUILD_TOKEN: ${{ secrets.PRE_BUILD_TOKEN }}
       - name: Deploy PR docs
         run: mike deploy --push -b pull-request-deployments ${{ steps.current_branch.outputs.CURRENT_BRANCH }}
 

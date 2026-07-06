@@ -7,10 +7,19 @@ on:
         description: Define the latest doc version for multiple versioned doc
         required: true
         type: string
+      PRE_BUILD_HOOK:
+        description: "Command/script to run after theme prep, before mike deploy"
+        required: false
+        type: string
+        default: ""
     secrets:
       GH_TOKEN:
         description: "GitHub token"
         required: true
+
+      PRE_BUILD_TOKEN:
+        description: "Secret to be used with PRE_BUILD_HOOK"
+        required: false
 
 jobs:
   push:
@@ -40,6 +49,12 @@ jobs:
         run: |
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
+
+      - name: Run pre-build hook
+        if: inputs.PRE_BUILD_HOOK != ''
+        run: ${{ inputs.PRE_BUILD_HOOK }}
+        env:
+          PRE_BUILD_TOKEN: ${{ secrets.PRE_BUILD_TOKEN }}
 
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
