@@ -17,7 +17,7 @@ on:
         description: "GitHub token"
         required: true
 
-      STAKATER_AB_REPOS:
+      PRE_BUILD_TOKEN:
         description: "Secret to be used with PRE_BUILD_HOOK"
         required: false
 
@@ -54,7 +54,7 @@ jobs:
         if: inputs.PRE_BUILD_HOOK != ''
         run: ${{ inputs.PRE_BUILD_HOOK }}
         env:
-          STAKATER_AB_REPOS: ${{ secrets.STAKATER_AB_REPOS }}
+          PRE_BUILD_TOKEN: ${{ secrets.PRE_BUILD_TOKEN }}
 
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
