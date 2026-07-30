@@ -20,6 +20,12 @@ on:
       PRE_BUILD_TOKEN:
         description: "Secret to be used with PRE_BUILD_HOOK"
         required: false
+      PRE_BUILD_USER:
+        description: "Username available to PRE_BUILD_HOOK (e.g. a docs screenshot capture login)"
+        required: false
+      PRE_BUILD_PASSWORD:
+        description: "Password available to PRE_BUILD_HOOK"
+        required: false
 
 jobs:
   push:
@@ -55,6 +61,8 @@ jobs:
         run: ${{ inputs.PRE_BUILD_HOOK }}
         env:
           PRE_BUILD_TOKEN: ${{ secrets.PRE_BUILD_TOKEN }}
+          PRE_BUILD_USER: ${{ secrets.PRE_BUILD_USER }}
+          PRE_BUILD_PASSWORD: ${{ secrets.PRE_BUILD_PASSWORD }}
 
       - name: Deploy content
         run: mike deploy --push ${{ github.ref_name }}
