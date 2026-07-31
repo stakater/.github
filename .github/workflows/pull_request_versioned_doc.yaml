@@ -66,6 +66,14 @@ jobs:
           git config --local user.email "stakater@gmail.com"
           git config --local user.name "stakater-user"
 
+      - name: Log in to container registry
+        if: inputs.PRE_BUILD_HOOK != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: stakater-user
+          password: ${{ secrets.GH_TOKEN }}
+
       - name: Run pre-build hook
         if: inputs.PRE_BUILD_HOOK != ''
         run: ${{ inputs.PRE_BUILD_HOOK }}
