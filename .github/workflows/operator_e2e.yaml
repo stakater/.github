@@ -15,6 +15,12 @@ on:
         default: "ubuntu-latest"
         type: string
 
+      KIND_CONFIG:
+        description: "Optional repo-relative path to a kind cluster config file (e.g. a config with disableDefaultCNI so the repo's e2e suite can install its own CNI). Empty = kind defaults."
+        required: false
+        default: ""
+        type: string
+
     secrets:
       CONTAINER_REGISTRY_URL:
         description: "Registry URL to publish image"
@@ -67,6 +73,8 @@ jobs:
           IMG: ${{ steps.find_tag.outputs.IMAGE }}
           GHCR_USERNAME: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
           GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+          # Reaches the kind setup script through `make cluster`
+          KIND_CONFIG: ${{ inputs.KIND_CONFIG }}
 
       - name: Run Operator E2E Tests
         run: make test-e2e
