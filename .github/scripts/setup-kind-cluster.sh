@@ -29,6 +29,11 @@ set -euo pipefail
 #   GHCR_TOKEN            - GitHub Container Registry token (required for pull-secret)
 #   KIND_VERSION          - Kind version to use (default: v0.30.0)
 #   LOCALBIN              - Local bin directory (default: ./bin)
+#   KIND_CONFIG           - Optional path to a kind cluster config file passed
+#                           to `kind create cluster --config`. Lets consumer
+#                           repos shape their cluster (extra nodes, port
+#                           mappings, disableDefaultCNI for a custom CNI, ...)
+#                           without cluster-flavor logic living here.
 # =============================================================================
 
 # Default values
@@ -38,6 +43,7 @@ KIND_VERSION=${KIND_VERSION:-v0.30.0}
 LOCALBIN=${LOCALBIN:-./bin}
 KIND=${KIND:-${LOCALBIN}/kind}
 PULL_SECRET_NAME=${PULL_SECRET_NAME:-saap-dockerconfigjson}
+KIND_CONFIG=${KIND_CONFIG:-}
 
 # Check for required tools
 check_prerequisites() {
@@ -103,9 +109,18 @@ create_cluster() {
         log_success "Kind cluster '${TEST_CLUSTER_NAME}' already exists"
         return 0
     fi
-    
-    log_info "Creating Kind cluster '${TEST_CLUSTER_NAME}'"
-    ${KIND} create cluster --name "${TEST_CLUSTER_NAME}"
+
+    if [[ -n "${KIND_CONFIG}" ]]; then
+        if [[ ! -f "${KIND_CONFIG}" ]]; then
+            log_error "KIND_CONFIG is set but '${KIND_CONFIG}' does not exist"
+            exit 1
+        fi
+        log_info "Creating Kind cluster '${TEST_CLUSTER_NAME}' with config '${KIND_CONFIG}'"
+        ${KIND} create cluster --name "${TEST_CLUSTER_NAME}" --config "${KIND_CONFIG}"
+    else
+        log_info "Creating Kind cluster '${TEST_CLUSTER_NAME}'"
+        ${KIND} create cluster --name "${TEST_CLUSTER_NAME}"
+    fi
     log_success "Kind cluster '${TEST_CLUSTER_NAME}' created successfully"
 }
 
@@ -185,6 +200,7 @@ Environment Variables:
   GHCR_USERNAME         GitHub Container Registry username (required for pull-secret)
   GHCR_TOKEN            GitHub Container Registry token (required for pull-secret)
   KIND_VERSION          Kind version to use (default: v0.30.0)
+  KIND_CONFIG           Optional kind config file for cluster creation
   LOCALBIN              Local bin directory (default: ./bin)
 
 Examples:
@@ -216,6 +232,7 @@ show_config() {
     echo "  PULL_SECRET_NAME: ${PULL_SECRET_NAME}"
     echo "  KIND_VERSION: ${KIND_VERSION}"
     echo "  LOCALBIN: ${LOCALBIN}"
+    echo "  KIND_CONFIG: ${KIND_CONFIG:-<not set>}"
     
     # Show masked credentials
     if [[ -n "${GHCR_USERNAME:-}" ]]; then
