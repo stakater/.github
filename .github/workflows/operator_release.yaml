@@ -51,6 +51,12 @@ on:
         default: false
         type: boolean 
 
+      ENABLE_CHART_TESTS:
+        description: "Enable running helm chart tests"
+        required: false
+        default: false
+        type: boolean
+
       ENABLE_CHART_PUSH:
         description: "Enable pushing helm charts to chart repo"
         required: false
@@ -185,6 +191,7 @@ jobs:
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
           HELM_REGISTRY: "${{ secrets.CONTAINER_REGISTRY_URL }}/charts"
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
+          ENABLE_CHART_TESTS: ${{ inputs.ENABLE_CHART_TESTS }}
           LATEST_TAG_NAME: ${{ inputs.LATEST_TAG_NAME }}
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
@@ -199,6 +206,7 @@ jobs:
           TAG: ${{ steps.tag.outputs.PUSH_TAG }}
           HELM_REGISTRY: "${{ secrets.CONTAINER_REGISTRY_URL }}/public/charts"
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}/public
+          ENABLE_CHART_TESTS: ${{ inputs.ENABLE_CHART_TESTS }}
 
         env:
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
