@@ -24,6 +24,11 @@ inputs:
     required: false
     default: main
 
+  ENABLE_CHART_TESTS:
+    description: "Enable running helm chart tests"
+    required: false
+    default: false
+
   OPM_VERSION:
     description: OPM CLI version to use
     default: "v1.50.0"
@@ -40,6 +45,16 @@ runs:
       uses: azure/setup-helm@v4
       with:
         version: v3.12.3
+
+    - name: Run chart unit tests
+      if: ${{ inputs.ENABLE_CHART_TESTS }}
+      run: make helm-test
+      shell: bash
+      env:
+        VERSION: ${{ inputs.VERSION }}
+        GIT_TAG: ${{ inputs.TAG }}
+        HELM_REGISTRY: ${{ inputs.HELM_REGISTRY }}
+        DOCKER_REPO_BASE: ${{ inputs.CONTAINER_REGISTRY_URL }}
 
     - name: Build and push chart
       run: make helm-release
