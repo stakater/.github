@@ -72,7 +72,7 @@ HELM_UNITTEST_VERSION ?= 0.6.3
 .PHONY: helm-test
 helm-test: helmify install-helm ## Run helm unittest tests against the generated chart
 	@installed=$$($(HELM) plugin list 2>/dev/null | awk '$$1 == "unittest" { print $$2 }'); \
- 	if [ "$(printf '%s\n' "$(HELM_UNITTEST_VERSION)" "$$installed" | sort -V | head -n1)" = "$(HELM_UNITTEST_VERSION)" ]; then \
+ 	if [ "$$(printf '%s\n' "$(HELM_UNITTEST_VERSION)" "$$installed" | sort -V | head -n1)" = "$(HELM_UNITTEST_VERSION)" ]; then \
 		echo "helm unittest plugin v$(HELM_UNITTEST_VERSION) already installed (found: $${installed:-none}) - skipping install"; \
 	else \
 		echo "Installing helm unittest plugin v$(HELM_UNITTEST_VERSION) (found: $${installed:-none})..."; \
