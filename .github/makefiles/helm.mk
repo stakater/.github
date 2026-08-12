@@ -12,6 +12,9 @@ HELM := $(shell command -v helm 2>/dev/null || echo $(LOCALBIN)/helm)
 # Any extra args to pass to helmify
 HELMIFY_ARGS ?=
 
+# Any extra args to pass to helm unittest (e.g., --debug)
+HELM_UNITTEST_ARGS ?=
+
 # Optional postprocessing script to run after helmify
 # Projects can override this to run custom scripts
 HELMIFY_POSTPROCESS ?=
@@ -74,7 +77,7 @@ helm-test: helmify install-helm ## Run helm unittest tests against the generated
 		[ -n "$$installed" ] && $(HELM) plugin uninstall unittest >/dev/null 2>&1 || true; 
 		$(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION);
 	fi
-	$(HELM) unittest $(HELM_CHART_DIR)
+	$(HELM) unittest $(HELM_UNITTEST_ARGS) $(HELM_CHART_DIR)
 	@echo "✓ Helm chart tests passed!"
 
 .PHONY: helm-package
