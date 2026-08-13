@@ -71,13 +71,22 @@ HELM_UNITTEST_VERSION ?= 0.6.3
 
 .PHONY: helm-test
 helm-test: helmify install-helm ## Run helm unittest tests against the generated chart
-	@installed=$$($(HELM) plugin list 2>/dev/null | awk '$$1 == "unittest" { print $$2 }'); \
+	@helmversion=$$($(HELM) version 2>/dev/null | jq -r -R '[scan("(\\w+):\"([^\"]*)\"")] | map({ (.[0]): .[1] }) | add.Version | ltrimstr("v")'); \
+	installed=$$($(HELM) plugin list 2>/dev/null | awk '$$1 == "unittest" { print $$2 }'); \
  	if [ "$$(printf '%s\n' "$(HELM_UNITTEST_VERSION)" "$$installed" | sort -V | head -n1)" = "$(HELM_UNITTEST_VERSION)" ]; then \
 		echo "helm unittest plugin v$(HELM_UNITTEST_VERSION) already installed (found: $${installed:-none}) - skipping install"; \
 	else \
 		echo "Installing helm unittest plugin v$(HELM_UNITTEST_VERSION) (found: $${installed:-none})..."; \
+		helmpluginargs="--version $(HELM_UNITTEST_VERSION)"; \
 		[ -n "$$installed" ] && $(HELM) plugin uninstall unittest >/dev/null 2>&1 || true; \
-		$(HELM) plugin install https://github.com/helm-unittest/helm-unittest --version $(HELM_UNITTEST_VERSION) --verify=false; \
+		if [ "$${helmversion%%.*}" -lt 3 ]; then \
+			echo "ERROR: helm version $$helmversion is not supported by helm unittest plugin. Please upgrade to Helm v3 or later."; \
+			exit 1; \
+		fi; \
+		if [ "$${helmversion%%.*}" -ge 4 ]; then \
+			helmpluginargs="$$helmpluginargs --verify=false"; \
+		fi; \
+		$(HELM) plugin install https://github.com/helm-unittest/helm-unittest $$helmpluginargs ; \
 	fi
 	$(HELM) unittest $(HELM_UNITTEST_ARGS) $(HELM_CHART_DIR)
 	@echo "✓ Helm chart tests passed!"
