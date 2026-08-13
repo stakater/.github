@@ -47,7 +47,7 @@ runs:
         version: v3.12.3
 
     - name: Run chart unit tests
-      if: ${{ inputs.ENABLE_LINTING == 'true' }}
+      if: ${{ inputs.ENABLE_CHART_TESTS == 'true' }}
       run: make helm-test
       shell: bash
       env:
