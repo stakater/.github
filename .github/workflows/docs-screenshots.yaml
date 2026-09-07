@@ -1,0 +1,113 @@
+name: Docs screenshots
+
+# Captures a docs repo's console screenshots and commits them, so no docs build has
+# to reach a live console.
+#
+# The caller declares the triggers, because a reusable workflow cannot. The github
+# context here is the caller's, so the label and approval checks below read the
+# caller's event.
+#
+#   name: Screenshots
+#   on:
+#     pull_request:
+#       types: [labeled]
+#     pull_request_review:
+#       types: [submitted]
+#     workflow_dispatch:
+#   jobs:
+#     capture:
+#       uses: stakater/.github/.github/workflows/docs-screenshots.yaml@<tag>
+#       secrets: inherit
+#
+# The caller repo provides screenshots/capture.sh, screenshots/config.env,
+# screenshots/flows/ and screenshots/inject.py.
+on:
+  workflow_call:
+    inputs:
+      CAPTURE_COMMAND:
+        description: "Command that runs the capture flows"
+        required: false
+        type: string
+        default: "bash screenshots/capture.sh"
+      CHECK_COMMAND:
+        description: "Command that checks every screenshot directive resolves"
+        required: false
+        type: string
+        default: "python3 screenshots/inject.py --check"
+    secrets:
+      PUBLISH_TOKEN:
+        description: "Token that pushes the refreshed images, and triggers the docs build"
+        required: true
+      GHCR_TOKEN:
+        description: "Token with read access to ghcr.io, for the private runner image"
+        required: true
+      CONSOLE_USER:
+        description: "Console user the flows log in as"
+        required: true
+      CONSOLE_PASSWORD:
+        description: "Password for CONSOLE_USER"
+        required: true
+
+jobs:
+  capture:
+    # The label forces a capture; approval only captures if none has happened yet.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       ((github.event_name == 'pull_request' &&
+         github.event.label.name == 'screenshots') ||
+        (github.event_name == 'pull_request_review' &&
+         github.event.review.state == 'approved' &&
+         !contains(github.event.pull_request.labels.*.name, 'screenshots-captured'))))
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout the branch being captured for
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          # PUBLISH_TOKEN rather than GITHUB_TOKEN: the commit below has to trigger
+          # the docs build, and GITHUB_TOKEN pushes never do.
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Log in to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: stakater-user
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      # Commands rather than fixed paths: a repo that downloads capture.sh from this
+      # repo's .github/scripts/ runs it through a make target instead.
+      - name: Capture
+        env:
+          CONSOLE_USER: ${{ secrets.CONSOLE_USER }}
+          CONSOLE_PASSWORD: ${{ secrets.CONSOLE_PASSWORD }}
+        run: ${{ inputs.CAPTURE_COMMAND }}
+
+      - name: Check every directive resolves
+        run: ${{ inputs.CHECK_COMMAND }}
+
+      - name: Commit the new images
+        run: |
+          git config user.email "stakater@gmail.com"
+          git config user.name "stakater-user"
+          git add screenshots/captured
+          if git diff --cached --quiet; then
+            echo "screenshots unchanged"
+            exit 0
+          fi
+          git commit -m "chore: refresh console screenshots"
+          git push
+
+      # So approval and the push build skip capturing what this run already did.
+      # The `screenshots` label comes off, so it can be added again to force another.
+      - name: Label the PR as captured
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$PR" --repo "$GITHUB_REPOSITORY" \
+            --add-label screenshots-captured --remove-label screenshots
