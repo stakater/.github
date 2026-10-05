@@ -1,10 +1,12 @@
 name: "Code Coverage Reporting"
-description: "Check code coverage"
+description: "Check code coverage. Requires: permissions.pull-requests: write"
 inputs:
   TARGET_BRANCH:
-    description: Target branch for the pull request
+    description: >-
+      Branch to diff coverage against. Defaults to the PR base branch
+      (so a stacked PR is compared to its parent), or main on push events.
     required: false
-    default: main
+    default: ${{ github.base_ref || 'main' }}
 
   # Go Test Coverage configuration file.
   COVERAGE_CONFIG:
@@ -34,13 +36,17 @@ runs:
               exit 1
           fi
 
-    - name: download artifact
+    # Pull the breakdown produced by the latest run on the base branch.
+    # For a stacked PR this is the parent PR's branch; for the bottom of the stack it's main.
+    - name: download base breakdown
       id: download-breakdown
       uses: dawidd6/action-download-artifact@v11
       with:
         branch: ${{ inputs.TARGET_BRANCH }}
-        workflow_conclusion: success
-        name: main.breakdown
+        workflow_conclusion: completed   # a parent that failed the threshold is still a valid base
+        search_artifacts: true           # walk back to the newest run that actually has the artifact
+        name: coverage.breakdown
+        path: .coverage-base
         if_no_artifact_found: warn
 
     - name: check test coverage
@@ -50,24 +56,33 @@ runs:
       with:
         config: ${{ inputs.COVERAGE_CONFIG }}
         profile: ${{ inputs.COVERAGE_PROFILE }}
-        breakdown-file-name: ${{ github.ref_name == inputs.TARGET_BRANCH && 'main.breakdown' || '' }}
-        diff-base-breakdown-file-name: ${{ steps.download-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
+        # Always produce a breakdown so any PR stacked on top of this branch can diff against it.
+        breakdown-file-name: coverage.breakdown
+        diff-base-breakdown-file-name: ${{ steps.download-breakdown.outputs.found_artifact == 'true' && '.coverage-base/coverage.breakdown' || '' }}
 
-    - uses: 8BitJonny/gh-get-current-pr@4.0.0
+    # Upload before the final fail step so children of a failing PR still get a base.
+    - name: upload breakdown for this branch
+      uses: actions/upload-artifact@v5
+      with:
+        name: coverage.breakdown
+        path: coverage.breakdown
+        if-no-files-found: error
+
+    - uses: jwalton/gh-find-current-pr@master
       id: PR
       with:
-        github-token: ${{ github.token }}
-        filterOutClosed: true
-        filterOutDraft: true
+        github-token: ${{ env.GITHUB_TOKEN }}
+        state: open
 
     - name: post coverage report
-      uses: thollander/actions-comment-pull-request@v3
-      if: steps.PR.outputs.pr_found == 'true' && steps.coverage.outputs.report != ''
+      uses: mshick/add-pr-comment@v3
+      if: steps.PR.outputs.number && steps.coverage.outputs.report != ''
+      env:
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
       with:
-        github-token: ${{ env.GITHUB_TOKEN }}
-        comment-tag: coverage-report
+        message-id: coverage-report
         message: |-
-          coverage report:
+          coverage report (diff vs `${{ inputs.TARGET_BRANCH }}`):
           ```
           ${{ fromJSON(steps.coverage.outputs.report) }}
           ```
@@ -76,11 +91,3 @@ runs:
       if: steps.coverage.outcome == 'failure'
       shell: bash
       run: echo "coverage check failed" && exit 1
-
-    - name: upload artifact
-      uses: actions/upload-artifact@v5
-      if: github.ref_name == inputs.TARGET_BRANCH
-      with:
-        name: main.breakdown
-        path: main.breakdown
-        if-no-files-found: error
