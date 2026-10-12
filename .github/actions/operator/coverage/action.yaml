@@ -62,7 +62,7 @@ runs:
 
     # Upload before the final fail step so children of a failing PR still get a base.
     - name: upload breakdown for this branch
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: coverage.breakdown
         path: coverage.breakdown
