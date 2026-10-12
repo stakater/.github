@@ -1,0 +1,154 @@
+name: Docs target
+
+# Every PR to main gets a bot comment asking whether it goes to the latest docs
+# branch too. The docs-target status stays pending until one box is ticked, and
+# on merge a PR ticked "Sync to latest" is applied onto LATEST_DOC_VERSION.
+# Runs trusted code only: PR code is fetched as a diff, never executed.
+#
+# The caller declares the triggers and permissions, because a reusable workflow
+# cannot. The github context here is the caller's, so the checks below read the
+# caller's event.
+#
+#   name: Docs Target
+#   on:
+#     pull_request_target:
+#       branches: [main]
+#       types: [opened, reopened, synchronize, closed]
+#     issue_comment:
+#       types: [edited]
+#   jobs:
+#     docs_target:
+#       permissions:
+#         issues: write
+#         pull-requests: write
+#         statuses: write
+#       uses: stakater/.github/.github/workflows/docs-target.yaml@<tag>
+#       with:
+#         LATEST_DOC_VERSION: "1.10"
+#       secrets:
+#         PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+on:
+  workflow_call:
+    inputs:
+      LATEST_DOC_VERSION:
+        description: "Branch that synced PRs are applied onto"
+        required: true
+        type: string
+      VERSION_BUMP_BRANCH_PREFIX:
+        description: "PRs from branches with this prefix come pre ticked for sync. Empty disables it"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      PUBLISH_TOKEN:
+        description: "Token that pushes to the latest docs branch, so the push triggers the docs deploy"
+        required: true
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+  PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+  LATEST: ${{ inputs.LATEST_DOC_VERSION }}
+  MARKER: '<!-- docs-target -->'
+  # ponytail: first 100 comments only, the bot comment is posted on open so it is always among them
+  FIND_COMMENT: '[.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- docs-target -->")))][0]'
+
+jobs:
+  target:
+    if: >-
+      (github.event_name == 'pull_request_target' && github.event.action != 'closed') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
+       github.event.comment.user.login == 'github-actions[bot]' &&
+       contains(github.event.comment.body, '<!-- docs-target -->'))
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Post comment and set status
+        env:
+          VERSION_BUMP: ${{ inputs.VERSION_BUMP_BRANCH_PREFIX != '' && startsWith(github.event.pull_request.head.ref, inputs.VERSION_BUMP_BRANCH_PREFIX) }}
+          # Renovate opens its own PRs against the version branches, so no sync needed
+          DEPENDENCY: ${{ github.event.pull_request.user.login == 'renovate[bot]' || contains(github.event.pull_request.labels.*.name, 'dependencies') }}
+        run: |
+          if [ "$DEPENDENCY" = "true" ]; then
+            gh api "repos/$GH_REPO/statuses/${{ github.event.pull_request.head.sha }}" \
+              -f state=success -f context=docs-target -f description="Dependency PR, skipped"
+            exit 0
+          fi
+
+          body=$(gh api "repos/$GH_REPO/issues/$PR/comments?per_page=100" --jq "$FIND_COMMENT | .body // \"\"")
+
+          if [ -z "$body" ]; then
+            sync=" "
+            [ "$VERSION_BUMP" = "true" ] && sync="x"
+            body="$MARKER
+          **Where should this go?** Tick one before merging:
+          - [$sync] Sync to latest docs (\`$LATEST\`)
+          - [ ] Dev only (stays on main)"
+            gh pr comment "$PR" --body "$body"
+          fi
+
+          ticked=$(grep -cE '^- \[[xX]\] (Sync to latest|Dev only)' <<<"$body" || true)
+          if [ "$ticked" -eq 1 ]; then
+            state=success; desc="Target selected"
+          else
+            state=pending; desc="Tick exactly one box in the docs target comment"
+          fi
+
+          sha=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+          gh api "repos/$GH_REPO/statuses/$sha" -f state="$state" -f context=docs-target -f description="$desc"
+
+  sync:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Check target
+        id: check
+        run: |
+          body=$(gh api "repos/$GH_REPO/issues/$PR/comments?per_page=100" --jq "$FIND_COMMENT | .body // \"\"")
+          if grep -qE '^- \[[xX]\] Sync to latest' <<<"$body"; then
+            echo "sync=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout latest docs branch
+        if: steps.check.outputs.sync == 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.LATEST_DOC_VERSION }}
+          fetch-depth: 0
+          # PUBLISH_TOKEN so the push triggers the caller's deploy workflow
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Apply PR onto latest docs branch
+        if: steps.check.outputs.sync == 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          git config --local user.name "stakater-user"
+          git config --local user.email "stakater@gmail.com"
+
+          # Apply the PR diff instead of cherry picking, so merge, squash and rebase merges all work
+          git fetch origin "pull/$PR/head"
+          git diff --binary "$BASE_SHA...$HEAD_SHA" | git apply --3way --index
+
+          if git diff --cached --quiet; then
+            gh pr comment "$PR" --body "Nothing to sync, \`$LATEST\` already has these changes."
+            exit 0
+          fi
+
+          git commit -m "Sync #$PR to $LATEST: $TITLE"
+          # Retry once on a race with another sync
+          git push origin "HEAD:$LATEST" || { git pull --rebase origin "$LATEST" && git push origin "HEAD:$LATEST"; }
+          gh pr comment "$PR" --body "Synced to \`$LATEST\` in $(git rev-parse --short HEAD)."
+
+      - name: Report failure
+        if: failure() && steps.check.outputs.sync == 'true'
+        run: |
+          gh pr comment "$PR" --body "Could not sync to \`$LATEST\` automatically (conflict or push failure, see [run]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID)). Please open a backport PR against \`$LATEST\`."
