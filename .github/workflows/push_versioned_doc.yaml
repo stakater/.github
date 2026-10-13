@@ -58,7 +58,7 @@ jobs:
 
       - name: Log in to container registry
         if: inputs.PRE_BUILD_HOOK != ''
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: stakater-user
