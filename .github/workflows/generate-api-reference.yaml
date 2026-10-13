@@ -53,10 +53,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout operator repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Checkout docs repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: ${{ inputs.docs_repo }}
           ref: ${{ inputs.docs_ref }}
