@@ -63,6 +63,12 @@ on:
         default: false
         type: boolean              
             
+      PUSH_TO_PUBLIC_REGISTRY:
+        description: "Also mirror images and the Helm chart to the /public registry path. Set false when the primary registry is already public, to avoid a redundant duplicate."
+        required: false
+        default: true
+        type: boolean
+
       GIT_USER:
         description: "Git user to push changes"
         required: false
@@ -165,7 +171,7 @@ jobs:
           OPM_VERSION: ${{ inputs.OPM_VERSION }}
           CATALOG_DIR_PATH: ${{ inputs.CATALOG_DIR_PATH }}
           RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
-          PUSH_TO_PUBLIC_REGISTRY: true
+          PUSH_TO_PUBLIC_REGISTRY: ${{ inputs.PUSH_TO_PUBLIC_REGISTRY }}
           CONTAINER_REGISTRY_URL: ${{ secrets.CONTAINER_REGISTRY_URL }}
           LATEST_TAG_NAME: ${{ inputs.LATEST_TAG_NAME }}
         env:
@@ -199,7 +205,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       
       - name: Publish Public Helm Chart
-        if: ${{ inputs.ENABLE_CHART_PUSH }}
+        if: ${{ inputs.ENABLE_CHART_PUSH && inputs.PUSH_TO_PUBLIC_REGISTRY }}
         uses: stakater/.github/.github/actions/operator/chart-push@main
         with:
           VERSION: ${{ steps.tag.outputs.TAG }}
