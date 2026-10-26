@@ -24,7 +24,7 @@ inputs:
   go_version:
     description: "Go version used to build crd-ref-docs."
     required: false
-    default: "1.26"
+    default: "1.27"
   working_directory:
     description: "Directory that source_path/config_file/output_file are relative to."
     required: false

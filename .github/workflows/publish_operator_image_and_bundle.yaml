@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       GOLANG_VERSION:
-        description: Go version to use
+        description: Go version to use when go.mod is missing
         default: "~1.18"
         required: false
         type: string
@@ -130,7 +130,8 @@ jobs:
     - name: Set up GO
       uses: actions/setup-go@v7
       with:
-        go-version: ${{ inputs.GOLANG_VERSION }}
+        go-version-file: go.mod
+        go-version: ${{ hashFiles('go.mod') == '' && inputs.GOLANG_VERSION || '' }}
 
     # Install preflight
     # https://github.com/redhat-actions/openshift-tools-installer#supported-tools
@@ -263,7 +264,8 @@ jobs:
     - name: Set up GO
       uses: actions/setup-go@v7
       with:
-        go-version: ${{ inputs.GOLANG_VERSION }}
+        go-version-file: go.mod
+        go-version: ${{ hashFiles('go.mod') == '' && inputs.GOLANG_VERSION || '' }}
 
     - name: Install CLI tools from OpenShift Mirror
       uses: redhat-actions/openshift-tools-installer@v3
