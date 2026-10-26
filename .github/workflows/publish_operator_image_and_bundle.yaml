@@ -136,7 +136,7 @@ jobs:
     # https://github.com/redhat-actions/openshift-tools-installer#supported-tools
 
     - name: Install CLI tools from OpenShift Mirror
-      uses: redhat-actions/openshift-tools-installer@v1
+      uses: redhat-actions/openshift-tools-installer@v3
       with:
         source: "github"
         preflight: ${{ inputs.PREFLIGHT_VERSION }}
@@ -266,7 +266,7 @@ jobs:
         go-version: ${{ inputs.GOLANG_VERSION }}
 
     - name: Install CLI tools from OpenShift Mirror
-      uses: redhat-actions/openshift-tools-installer@v1
+      uses: redhat-actions/openshift-tools-installer@v3
       with:
         source: "github"
         operator-sdk: ${{ inputs.OPERATOR_SDK_VERSION }}
