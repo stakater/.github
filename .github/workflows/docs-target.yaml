@@ -136,7 +136,15 @@ jobs:
 
           # Apply the PR diff instead of cherry picking, so merge, squash and rebase merges all work
           git fetch origin "pull/$PR/head"
-          git diff --binary "$BASE_SHA...$HEAD_SHA" | git apply --3way --index
+          # Binaries can't 3-way merge (e.g. screenshots re-captured on every PR), so take the PR's copy
+          bins=() excludes=()
+          while IFS=$'\t' read -r -d '' added _ path; do
+            if [ "$added" = - ]; then bins+=("$path"); excludes+=(":(exclude,literal)$path"); fi
+          done < <(git diff -z --no-renames --numstat "$BASE_SHA...$HEAD_SHA")
+          git diff --binary --no-renames "$BASE_SHA...$HEAD_SHA" -- . "${excludes[@]}" | git apply --3way --index
+          for f in "${bins[@]}"; do
+            git checkout "$HEAD_SHA" -- ":(literal)$f" 2>/dev/null || git rm -q --ignore-unmatch -- ":(literal)$f"
+          done
 
           if git diff --cached --quiet; then
             gh pr comment "$PR" --body "Nothing to sync, \`$LATEST\` already has these changes."
