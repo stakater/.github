@@ -30,6 +30,12 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
+    # mike pushes to gh-pages from the copy fetched at checkout, so parallel runs
+    # (e.g. main and a synced version branch) reject each other. Queue them instead.
+    # Callers must not reuse this group name, or the two levels deadlock.
+    concurrency:
+      group: gh-pages-deploy-shared
+      cancel-in-progress: false
     steps:
       - name: Checkout source files
         uses: actions/checkout@v5
