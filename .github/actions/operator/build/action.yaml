@@ -48,7 +48,7 @@ runs:
   using: "composite"
   steps:
     - name: Install CLI tools
-      uses: redhat-actions/openshift-tools-installer@v1
+      uses: redhat-actions/openshift-tools-installer@v3
       with:
         source: "github"
         opm: ${{ inputs.OPM_VERSION }}
