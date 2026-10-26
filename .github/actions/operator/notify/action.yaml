@@ -25,7 +25,7 @@ runs:
         fi
 
     - name: Comment on PR
-      uses: mshick/add-pr-comment@v2
+      uses: mshick/add-pr-comment@v3
       if: always()
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
