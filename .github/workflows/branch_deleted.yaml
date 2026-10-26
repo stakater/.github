@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Check if the deleted branch is a version branch
         id: branch_check
-        uses: MeilCli/regex-match@v1
+        uses: MeilCli/regex-match@v3.0.13
         with:
           regex_pattern: '^[0-9]+\.[0-9]+(\.[0-9]+)?$'
           search_string: ${{ github.event.ref }}
