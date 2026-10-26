@@ -40,7 +40,7 @@ runs:
     # For a stacked PR this is the parent PR's branch; for the bottom of the stack it's main.
     - name: download base breakdown
       id: download-breakdown
-      uses: dawidd6/action-download-artifact@v11
+      uses: dawidd6/action-download-artifact@v27
       with:
         branch: ${{ inputs.TARGET_BRANCH }}
         workflow_conclusion: completed   # a parent that failed the threshold is still a valid base
