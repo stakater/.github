@@ -40,7 +40,7 @@ on:
         type: string
 
       GO_VERSION:
-        description: Go lang version to use
+        description: Go lang version to use when go.mod is missing
         default: 1.25.0
         required: false
         type: string
@@ -127,7 +127,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v7
         with:
-          go-version: ${{ inputs.GO_VERSION }}
+          go-version-file: go.mod
+          go-version: ${{ hashFiles('go.mod') == '' && inputs.GO_VERSION || '' }}
 
       - name: Show Go Version
         run: go version
