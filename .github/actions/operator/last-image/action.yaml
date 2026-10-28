@@ -29,7 +29,8 @@ runs:
             }
           }' --jq '.data.repository.pullRequest.comments.nodes | map(select(.body | test("docker pull"))) | .[-1].body')
         if [ -z "$LATEST_COMMENT" ]; then
-          echo "No Docker image tag found in comments."
+          echo "::error::No 'docker pull' image comment found on PR #${PR_NUMBER}. The PR image may still be building; re-run once the image comment is posted."
+          exit 1
         else
           echo "Latest Docker image comment: $LATEST_COMMENT"
           tag=$(echo $LATEST_COMMENT | sed -n 's/.*docker pull .*:\([^ `]*\).*/\1/p')
