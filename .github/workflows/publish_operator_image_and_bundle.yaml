@@ -57,6 +57,12 @@ on:
         required: true
         type: string
 
+      ENABLE_STAKATER_AB_GIT_AUTH:
+        description: "Configure git to use stakater-ab private repos (authenticates with ADMIN_TOKEN)"
+        required: false
+        default: false
+        type: boolean
+
     secrets:
       REGISTRY_REDHAT_IO_PULL_SECRET:
         description: "Secret to pull images for RedHat registry images"
@@ -260,6 +266,11 @@ jobs:
           echo "Required Secrets 'STAKATER_NEXUS_REGISTRY' or 'STAKATER_NEXUS_USERNAME' or 'STAKATER_NEXUS_PASSWORD' are not set!"
           exit 1
         fi
+
+    - name: Config private repo
+      if: ${{ inputs.ENABLE_STAKATER_AB_GIT_AUTH }}
+      run: |
+        git config --global url."https://${{ secrets.ADMIN_TOKEN }}:x-oauth-basic@github.com/stakater-ab".insteadOf "https://github.com/stakater-ab"
 
     - name: Set up GO
       uses: actions/setup-go@v7
