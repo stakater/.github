@@ -3,7 +3,10 @@ name: Docs target
 # Every PR to main gets a bot comment asking whether it goes to the latest docs
 # branch too. The docs-target status stays pending until one box is ticked, and
 # on merge a PR ticked "Sync to latest" is applied onto LATEST_DOC_VERSION.
-# Runs trusted code only: PR code is fetched as a diff, never executed.
+# Where the PR and that branch changed the same lines, the PR's version is kept
+# and the PR gets a comment naming the files, so the branches never drift apart
+# waiting for a backport PR nobody opens.
+# Runs trusted code only: PR code is fetched as a tree, never executed.
 #
 # The caller declares the triggers and permissions, because a reusable workflow
 # cannot. The github context here is the caller's, so the checks below read the
@@ -134,29 +137,51 @@ jobs:
           git config --local user.name "stakater-user"
           git config --local user.email "stakater@gmail.com"
 
-          # Apply the PR diff instead of cherry picking, so merge, squash and rebase merges all work
           git fetch origin "pull/$PR/head"
-          # Binaries can't 3-way merge (e.g. screenshots re-captured on every PR), so take the PR's copy
-          bins=() excludes=()
-          while IFS=$'\t' read -r -d '' added _ path; do
-            if [ "$added" = - ]; then bins+=("$path"); excludes+=(":(exclude,literal)$path"); fi
-          done < <(git diff -z --no-renames --numstat "$BASE_SHA...$HEAD_SHA")
-          git diff --binary --no-renames "$BASE_SHA...$HEAD_SHA" -- . "${excludes[@]}" | git apply --3way --index
-          for f in "${bins[@]}"; do
-            git checkout "$HEAD_SHA" -- ":(literal)$f" 2>/dev/null || git rm -q --ignore-unmatch -- ":(literal)$f"
-          done
+
+          # The PR as one commit on its merge base with main, so a single 3-way merge
+          # applies it whether it was merged, squashed or rebased.
+          base=$(git merge-base "$BASE_SHA" "$HEAD_SHA")
+          pr_commit=$(git commit-tree "$HEAD_SHA^{tree}" -p "$base" -m "#$PR")
+
+          # Where the PR and $LATEST changed the same lines, the PR wins. Failing here
+          # and asking for a backport PR instead left the branches drifting apart.
+          # Output is the tree, the conflicted paths, then a blank line and messages
+          conflicts=$(git merge-tree --write-tree --name-only --merge-base="$base" HEAD "$pr_commit" | awk 'NR == 1 { next } /^$/ { exit } { print }')
+          if ! git cherry-pick --no-commit --strategy-option=theirs "$pr_commit"; then
+            # theirs settles changed lines, not a file changed here and deleted in the PR
+            # (or the reverse). Take the PR's side of those too
+            [ -n "$(git ls-files -u)" ] || exit 1
+            git diff --name-only --diff-filter=U -z | while IFS= read -r -d '' f; do
+              if git cat-file -e "$HEAD_SHA:$f" 2>/dev/null; then
+                git checkout "$HEAD_SHA" -- ":(literal)$f"
+              else
+                git rm -q -- ":(literal)$f"
+              fi
+            done
+            [ -z "$(git ls-files -u)" ] || exit 1
+          fi
 
           if git diff --cached --quiet; then
             gh pr comment "$PR" --body "Nothing to sync, \`$LATEST\` already has these changes."
             exit 0
           fi
 
-          git commit -m "Sync #$PR to $LATEST: $TITLE"
+          msg="Sync #$PR to $LATEST: $TITLE"
+          [ -z "$conflicts" ] || msg="$msg
+
+          Conflicts resolved in favour of the PR:
+          $conflicts"
+          git commit -q -m "$msg"
           # Retry once on a race with another sync
           git push origin "HEAD:$LATEST" || { git pull --rebase origin "$LATEST" && git push origin "HEAD:$LATEST"; }
-          gh pr comment "$PR" --body "Synced to \`$LATEST\` in $(git rev-parse --short HEAD)."
+
+          msg="Synced to \`$LATEST\` in $(git rev-parse --short HEAD)."
+          [ -z "$conflicts" ] || msg="$msg Both the PR and \`$LATEST\` had changed these files; where they changed the same lines, the PR's version was kept. Please check them on \`$LATEST\`:
+          $(sed 's/^/- `/; s/$/`/' <<<"$conflicts")"
+          gh pr comment "$PR" --body "$msg"
 
       - name: Report failure
         if: failure() && steps.check.outputs.sync == 'true'
         run: |
-          gh pr comment "$PR" --body "Could not sync to \`$LATEST\` automatically (conflict or push failure, see [run]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID)). Please open a backport PR against \`$LATEST\`."
+          gh pr comment "$PR" --body "Could not sync to \`$LATEST\` (see [run]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID)). Please open a backport PR against \`$LATEST\`."
