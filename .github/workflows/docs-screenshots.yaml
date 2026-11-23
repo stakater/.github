@@ -70,6 +70,29 @@ jobs:
           # PUBLISH_TOKEN rather than GITHUB_TOKEN: the commit below has to trigger
           # the docs build, and GITHUB_TOKEN pushes never do.
           token: ${{ secrets.PUBLISH_TOKEN }}
+          # Full history, so the base branch can be merged below
+          fetch-depth: 0
+
+      # Merge the base first, so the images committed below can't conflict with a
+      # capture another PR already merged. A captured/ conflict keeps ours, since this
+      # run recaptures it anyway; any other conflict fails the run.
+      - name: Merge the base branch
+        env:
+          BASE: ${{ github.event.pull_request.base.ref || github.event.repository.default_branch }}
+        run: |
+          git config user.email "stakater@gmail.com"
+          git config user.name "stakater-user"
+          git fetch origin "$BASE"
+          if ! git merge --no-edit "origin/$BASE"; then
+            git diff --name-only --diff-filter=U -z -- screenshots/captured | xargs -0 -r git checkout --ours --
+            git add screenshots/captured
+            if [ -n "$(git ls-files -u)" ]; then
+              echo "::error::Conflicts outside screenshots/captured, merge $BASE into the branch by hand"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
+            git commit --no-edit
+          fi
 
       - name: Log in to container registry
         uses: docker/login-action@v4
@@ -90,15 +113,14 @@ jobs:
         run: ${{ inputs.CHECK_COMMAND }}
 
       - name: Commit the new images
+        # Pushes even when the images are unchanged, to carry the base merge
         run: |
-          git config user.email "stakater@gmail.com"
-          git config user.name "stakater-user"
           git add screenshots/captured
           if git diff --cached --quiet; then
             echo "screenshots unchanged"
-            exit 0
+          else
+            git commit -m "chore: refresh console screenshots"
           fi
-          git commit -m "chore: refresh console screenshots"
           git push
 
       # So approval and the push build skip capturing what this run already did.
