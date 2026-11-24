@@ -6,6 +6,8 @@ Since 2015, Stakater has been an active open source contributor, with projects a
 
 💛 [Sponsor our open source work](https://github.com/sponsors/stakater)
 
+🚀 **We're hiring!** Help us build Kubernetes platforms and the tools above → [Open positions](https://www.stakater.com/careers/?utm_source=github&utm_medium=readme&utm_campaign=org-profile)
+
 In addition to our open source projects, we offer:
 - [Multi-Tenant Operator (MTO)](https://www.stakater.com/mto) – Enterprise-grade multi-tenancy for Kubernetes and OpenShift.
 - [Stakater Cloud](https://www.stakater.cloud) – Managed Kubernetes platform built on OpenShift.
