@@ -14,6 +14,11 @@
 #
 # A failing flow does not stop the run, so one broken page still leaves the rest
 # captured. The exit code is non-zero if any flow failed.
+#
+# A flow that fails is run again, because one slow page or one failed reachability
+# probe against a live console should not fail the whole capture. CAPTURE_ATTEMPTS
+# sets the number of tries per flow (default 3, 1 turns retrying off) and
+# CAPTURE_RETRY_DELAY the seconds between them (default 10).
 set -u
 
 if [ -n "${SCREENSHOTS_DIR:-}" ]; then
@@ -30,6 +35,9 @@ ENV_FILE="$DIR/.env"
 # Point RUNNER_PACKS at a browser-runner checkout's src/packs to mount them over the
 # image's copy. This is for pack development only.
 PACKS="${RUNNER_PACKS:-}"
+
+ATTEMPTS="${CAPTURE_ATTEMPTS:-3}"
+RETRY_DELAY="${CAPTURE_RETRY_DELAY:-10}"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "FAIL: $CONFIG_FILE not found" >&2
@@ -82,18 +90,44 @@ if [ -n "$PACKS" ]; then
     echo "packs: $PACKS (mounted over the image's copy)"
 fi
 
-failed=0
-for flow in $flows; do
-    name="$(basename "$flow" .yaml)"
-    echo "RUN: $name"
-    if docker run --rm \
+# One capture of one flow. Returns the runner's exit code.
+run_flow() {
+    docker run --rm \
         --env-file "$CONFIG_FILE" \
         "${creds[@]}" \
         -e E2E_ARTIFACTS_DIR=/out \
         -v "$OUT:/out" \
         "${packs_mount[@]}" \
-        -v "$flow:/etc/e2e/test.yaml:ro" \
-        "$IMAGE" /etc/e2e/test.yaml; then
+        -v "$1:/etc/e2e/test.yaml:ro" \
+        "$IMAGE" /etc/e2e/test.yaml
+}
+
+# Run a flow up to ATTEMPTS times. Before a retry, the images the failed attempt wrote
+# are deleted, so its on-failure shot is not left behind once the flow passes.
+run_with_retry() {
+    local flow="$1" tries="$2" rc=0 attempt marker
+    marker="$(mktemp)"
+    for attempt in $(seq 1 "$tries"); do
+        touch "$marker"
+        run_flow "$flow" && rc=0 && break
+        rc=$?
+        [ "$attempt" -lt "$tries" ] || break
+        echo "RETRY: $(basename "$flow" .yaml) (exit $rc, attempt $attempt of $tries)"
+        find "$OUT" -name '*.png' -newer "$marker" -delete
+        sleep "$RETRY_DELAY"
+    done
+    rm -f "$marker"
+    return $rc
+}
+
+failed=0
+for flow in $flows; do
+    name="$(basename "$flow" .yaml)"
+    echo "RUN: $name"
+    # _seed and _teardown change state, so they run once: a retry could repeat a create.
+    tries="$ATTEMPTS"
+    case "$name" in _*) tries=1 ;; esac
+    if run_with_retry "$flow" "$tries"; then
         echo "PASS: $name"
     else
         echo "FAIL: $name (exit $?)"
